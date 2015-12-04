@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file:///media/windows/Users/Randolph/OneDrive/Programming/SUTD/Iris/IrisApp/IrisApp.iml" filepath="/media/windows/Users/Randolph/OneDrive/Programming/SUTD/Iris/IrisApp/IrisApp.iml" />
-      <module fileurl="file:///media/windows/Users/Randolph/OneDrive/Programming/SUTD/Iris/IrisApp/app/app.iml" filepath="/media/windows/Users/Randolph/OneDrive/Programming/SUTD/Iris/IrisApp/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IrisApp.iml" filepath="$PROJECT_DIR$/IrisApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
 </project>
