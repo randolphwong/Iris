@@ -32,7 +32,7 @@ bool WIEGAND::available()
 
 void WIEGAND::begin()
 {
-  begin(2,0,3,1);
+  begin(26,26,33,33);
 }
 
 void WIEGAND::begin(int pinD0, int pinIntD0, int pinD1, int pinIntD1)
@@ -88,7 +88,7 @@ unsigned long WIEGAND::GetCardId (volatile unsigned long *codehigh, volatile uns
 	unsigned long cardID=0;
 
 	if (bitlength==26)								// EM tag
-		cardID = (*codelow & 0x1FFFFFE) >>1;
+		cardID = (*codelow & 0x1FFFE) >>1;
 
 	if (bitlength==34)								// Mifare 
 	{
