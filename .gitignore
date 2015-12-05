@@ -35,3 +35,6 @@ captures/
 *.swp
 *.swo
 *~
+
+# Vim plugin
+.ycm_extra_conf.*
