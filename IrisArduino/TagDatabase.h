@@ -7,21 +7,31 @@
 #include "WProgram.h"
 #endif
 
+#include <stdlib.h>
+#include <EEPROM.h>
 #include "Tag.h"
+
+#define SCHEMA 123
+#define DATABASE_SIZE 8
 
 class TagDatabase {
 
 public:
     TagDatabase();
     void load();
-    void store(Tag*);
+    void clear();
+    void add(Tag*);
+    void update(Tag*);
     bool contains(Tag*);
     bool contains(uint16_t);
     Tag* get(uint16_t);
 
 private:
-    uint8_t size;
-    Tag** database;
+    void store(Tag*);
+    int8_t get(Tag*);
+
+    int8_t size = 0;
+    Tag* database[8];
 };
 
 #endif
