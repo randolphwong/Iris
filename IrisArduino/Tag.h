@@ -11,11 +11,11 @@ class Tag {
 
 public:
     Tag();
-    Tag(const uint16_t);
-    void setID(const uint16_t);
+    Tag(uint16_t);
+    void setID(uint16_t);
     void enable();
     void disable();
-    void setStolen(const bool stolen);
+    void setStolen(bool stolen);
     uint16_t getID();
     bool isEnabled();
     bool isStolen();

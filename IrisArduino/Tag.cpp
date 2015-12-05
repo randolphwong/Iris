@@ -2,11 +2,11 @@
 
 Tag::Tag() {}
 
-Tag::Tag(const uint16_t id) {
+Tag::Tag(uint16_t id) {
     setID(id);
 }
 
-void Tag::setID(const uint16_t id) {
+void Tag::setID(uint16_t id) {
     this->id = id;
 }
 
@@ -18,7 +18,7 @@ void Tag::disable() {
     this->enabled = false;
 }
 
-void Tag::setStolen(const bool stolen) {
+void Tag::setStolen(bool stolen) {
     this->stolen = stolen;
 }
 
