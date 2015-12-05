@@ -22,9 +22,9 @@ public:
     bool isStolen();
 
 private:
-    uint16_t id = 0;
-    bool enabled = false;
-    bool stolen = false;
+    uint16_t id;
+    bool enabled;
+    bool stolen;
 };
 
 #endif

@@ -1,6 +1,10 @@
 #include "Tag.h"
 
-Tag::Tag() {}
+Tag::Tag() {
+    id = 0;
+    enabled = false;
+    stolen = false;
+}
 
 Tag::Tag(Tag* tag) {
     setID(tag->getID());
