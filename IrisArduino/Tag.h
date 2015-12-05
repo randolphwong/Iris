@@ -11,6 +11,7 @@ class Tag {
 
 public:
     Tag();
+    Tag(Tag*);
     Tag(uint16_t);
     void setID(uint16_t);
     void enable();

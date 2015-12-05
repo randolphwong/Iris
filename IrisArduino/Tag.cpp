@@ -2,6 +2,13 @@
 
 Tag::Tag() {}
 
+Tag::Tag(Tag* tag) {
+    setID(tag->getID());
+    if (tag->isEnabled())
+        enable();
+    setStolen(tag->isStolen());
+}
+
 Tag::Tag(uint16_t id) {
     setID(id);
 }
