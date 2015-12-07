@@ -44,6 +44,11 @@ public class AddTagActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * TODO: Test add tag function. When the reportLost method is called, mark the corresponding tag in database as lost
+     * @param view
+     */
+
     public void add(View view){
         EditText name = (EditText)findViewById(R.id.tagname);
         EditText id = (EditText)findViewById(R.id.tagid);

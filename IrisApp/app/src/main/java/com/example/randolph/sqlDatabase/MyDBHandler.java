@@ -6,6 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Created by junhaochiew on 6/11/2015.
  */
@@ -88,27 +92,24 @@ public class MyDBHandler extends SQLiteOpenHelper {
         db.close();
         return dbString;
     }
-//    public String[] getNames(){
-//        String dbString="";
-//        SQLiteDatabase db = getWritableDatabase();
-//        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
-//
-//        Cursor c= db.rawQuery(query, null);
-//
-//        c.moveToFirst();
-//
-//        while (!c.isAfterLast()){
-//            if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
-//                dbString += c.getString(c.getColumnIndex(COLUMN_TAGID)) + " ";
-//                dbString += c.getLong(c.getColumnIndex(COLUMN_TIMESAPPEARED)) + " ";
-//                dbString += c.getLong(c.getColumnIndex(COLUMN_LASTKNOWNLOCATION)) + " ";
-//                dbString += "\n";
-//            }
-//            c.moveToNext();
-//        }
-//        db.close();
-//        return dbString;
-//    }
+    public List<String> getNames(){
+        List<String> names = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
+
+        Cursor c= db.rawQuery(query, null);
+
+        c.moveToFirst();
+
+        while (!c.isAfterLast()){
+            if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
+                names.add(c.getString(c.getColumnIndex(COLUMN_TAGNAME)));
+            }
+            c.moveToNext();
+        }
+        db.close();
+        return names;
+    }
 
     // returns detail of the route in String[] format, 0-rowid, 1-Tag Name, 2-Enabled, 3-Stolen, 4-timesappeared, 5-lastknownlocation, 6- owner, 7-remark
     public String[] getTagDetails(String tagName){
@@ -183,6 +184,38 @@ public class MyDBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id, null);
 
+    }
+
+    public void reportLost(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_STOLEN,1);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+    public void reportFound(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_STOLEN,0);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+    public void enableTag(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_ENABLED,1);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+    public void disableTag(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_ENABLED,0);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
     }
 
 

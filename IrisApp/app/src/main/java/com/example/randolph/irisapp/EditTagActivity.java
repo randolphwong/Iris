@@ -15,6 +15,7 @@ import com.example.randolph.sqlDatabase.MyDBHandler;
 public class EditTagActivity extends AppCompatActivity {
 
     MyDBHandler tagDB;
+    String[] tagDetails;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,10 +30,16 @@ public class EditTagActivity extends AppCompatActivity {
              *
              */
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) toggle.setText("Enabled");
-                else toggle.setText("Disabled");
+                if(isChecked){
+                    toggle.setText("Enabled");
+                    enableTag();
+                }else{
+                    toggle.setText("Disabled");
+                    disableTag();
+                }
             }
         });
+        tagDetails = tagDB.getTagDetails(MainActivity.tagName);
     }
 
     @Override
@@ -58,24 +65,36 @@ public class EditTagActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO: Implement delete function. When the delete method is called, delete that tag from database
+     * TODO: Test delete function. When the delete method is called, delete that tag from database
      *
      */
 
     public void delete(View view){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Deleted",Toast.LENGTH_SHORT).show();
-        String[] tagDetails = tagDB.getTagDetails(MainActivity.tagName);
         tagDB.deleteTag(Long.parseLong(tagDetails[0]));
     }
 
     /**
-     * TODO: Implement report lost function. When the reportLost method is called, mark the corresponding tag in database as lost
+     * TODO: Test report lost function. When the reportLost method is called, mark the corresponding tag in database as lost
      * @param view
      */
     public void reportLost(View view){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Reported",Toast.LENGTH_SHORT).show();
-        String[] tagDetails = tagDB.getTagDetails(MainActivity.tagName);
+        tagDB.reportLost(Long.parseLong(tagDetails[0]));
+    }
 
+    /**
+     * TODO: Test enableTag and disableTag function. When the reportLost method is called, mark the corresponding tag in database as lost
+     *
+     */
+    public void enableTag(){
+        Toast.makeText(getApplicationContext(),MainActivity.tagName + "Enabled",Toast.LENGTH_SHORT).show();
+        tagDB.enableTag(Long.parseLong(tagDetails[0]));
+    }
+
+    public void disableTag(){
+        Toast.makeText(getApplicationContext(),MainActivity.tagName + "Disabled",Toast.LENGTH_SHORT).show();
+        tagDB.disableTag(Long.parseLong(tagDetails[0]));
     }
 
 

@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
         initialize();
         final TempDatabase database = new TempDatabase();
         String[] data = database.getData();
+        tagDB = new MyDBHandler(this,null,null,1);
     }
 
     @Override
@@ -50,12 +51,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO: Modify the method so it will get data from SQL database instead of the tempdatabase
-     * need to return a string array to method arrayAdapter()
+     * TODO: Test the initialize method
+     *
      */
     public void initialize(){
-        final TempDatabase database = new TempDatabase();
-        String[] data = database.getData();
+
+        final String[] data = tagDB.getNames().toArray(new String[tagDB.getNames().size()]);
         tagList = (ListView)findViewById(R.id.listView);
         arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,data);
         tagList.setAdapter(arrayAdapter);
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         tagList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                tagName = database.getNameByIndex(position);
+                tagName = data[position];
                 Intent intent = new Intent(MainActivity.this,EditTagActivity.class);
                 startActivity(intent);
             }
