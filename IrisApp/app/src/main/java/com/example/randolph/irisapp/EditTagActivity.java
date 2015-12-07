@@ -22,6 +22,7 @@ public class EditTagActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_tag);
         TextView tagName = (TextView)findViewById(R.id.tagname);
         tagName.setText("Editing Tag: " + MainActivity.tagName);
+        tagDB = new MyDBHandler(this,null,null,1);
         final ToggleButton toggle = (ToggleButton)findViewById(R.id.enable);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

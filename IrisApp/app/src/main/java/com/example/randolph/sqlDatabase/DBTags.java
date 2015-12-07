@@ -11,17 +11,20 @@ public class DBTags {
     private Integer _stolen;
     private Integer _timesappeared;
     private String _lastknownlocation;
-    private String _ownersname;
+    private String _tagname;
     private String _tagItem;
 
+    public DBTags(){
+
+    }
     public DBTags(String _tagID, Integer _enabled, Integer _stolen, Integer _timesappeared, String _lastknownlocation,
-                  String _ownersname, String _tagItem) {
+                  String _tagname, String _tagItem) {
         this._tagID = _tagID;
         this._enabled = _enabled;
         this._stolen = _stolen;
         this._timesappeared = _timesappeared;
         this._lastknownlocation = _lastknownlocation;
-        this._ownersname = _ownersname;
+        this._tagname = _tagname;
         this._tagItem = _tagItem;
     }
 
@@ -53,8 +56,8 @@ public class DBTags {
         this._lastknownlocation = _lastknownlocation;
     }
 
-    public void set_ownersname(String _ownersname) {
-        this._ownersname = _ownersname;
+    public void set_tagname(String _tagname) {
+        this._tagname = _tagname;
     }
 
     public void set_tagItem(String _tagItem) {
@@ -81,8 +84,8 @@ public class DBTags {
         return _lastknownlocation;
     }
 
-    public String get_ownersname() {
-        return _ownersname;
+    public String get_tagname() {
+        return _tagname;
     }
 
     public String get_tagItem() {

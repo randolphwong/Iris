@@ -53,7 +53,7 @@ public class AddTagActivity extends AppCompatActivity {
         EditText name = (EditText)findViewById(R.id.tagname);
         EditText id = (EditText)findViewById(R.id.tagid);
         DBTags newTag = new DBTags(id.getText().toString(),1,0,0,"",name.getText().toString(),"");
-        if(tagDB == null) Log.e("TAG", "Null tagDB");
+        //if(tagDB == null) Log.e("TAG", "Null tagDB");
         tagDB.addTag(newTag);
         Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
     }

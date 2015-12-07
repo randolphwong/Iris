@@ -3,6 +3,7 @@ package com.example.randolph.irisapp;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,10 +23,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        tagDB = new MyDBHandler(this,null,null,1);
         initialize();
         final TempDatabase database = new TempDatabase();
         String[] data = database.getData();
-        tagDB = new MyDBHandler(this,null,null,1);
+
     }
 
     @Override
@@ -55,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
      *
      */
     public void initialize(){
-
+        if(tagDB == null) Log.e("TAG", "tagDB is null");
+        if(tagDB.getNames() == null) Log.e("TAG","getNames is null");
         final String[] data = tagDB.getNames().toArray(new String[tagDB.getNames().size()]);
         tagList = (ListView)findViewById(R.id.listView);
         arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,data);

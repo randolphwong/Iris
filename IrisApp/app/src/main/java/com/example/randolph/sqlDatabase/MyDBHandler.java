@@ -20,7 +20,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
     public static final String TABLE_TAG ="tagtable";
 
     public static final String COLUMN_ID="_id";
-    public static final String COLUMN_TAGID ="tagname";
+    public static final String COLUMN_TAGID ="tagID";
     public static final String COLUMN_ENABLED ="enabled";
     public static final String COLUMN_STOLEN ="stolen";
     public static final String COLUMN_TIMESAPPEARED ="timesappeared";
@@ -59,7 +59,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
         cv.put(COLUMN_STOLEN, tags.get_stolen());
         cv.put(COLUMN_TIMESAPPEARED, tags.get_timesappeared());
         cv.put(COLUMN_LASTKNOWNLOCATION, tags.get_lastknownlocation());
-        cv.put(COLUMN_TAGNAME, tags.get_ownersname());
+        cv.put(COLUMN_TAGNAME, tags.get_tagname());
         cv.put(COLUMN_TAGITEM, tags.get_tagItem());
         SQLiteDatabase db = getWritableDatabase();
         db.insert(TABLE_TAG,null,cv);
