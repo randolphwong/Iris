@@ -10,8 +10,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.example.randolph.sqlDatabase.MyDBHandler;
+
 public class MainActivity extends AppCompatActivity {
 
+    MyDBHandler tagDB;
     private ListView tagList;
     private ArrayAdapter arrayAdapter;
     public static String tagName;
@@ -20,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initialize();
+        final TempDatabase database = new TempDatabase();
+        String[] data = database.getData();
     }
 
     @Override
