@@ -88,6 +88,27 @@ public class MyDBHandler extends SQLiteOpenHelper {
         db.close();
         return dbString;
     }
+//    public String[] getNames(){
+//        String dbString="";
+//        SQLiteDatabase db = getWritableDatabase();
+//        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
+//
+//        Cursor c= db.rawQuery(query, null);
+//
+//        c.moveToFirst();
+//
+//        while (!c.isAfterLast()){
+//            if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
+//                dbString += c.getString(c.getColumnIndex(COLUMN_TAGID)) + " ";
+//                dbString += c.getLong(c.getColumnIndex(COLUMN_TIMESAPPEARED)) + " ";
+//                dbString += c.getLong(c.getColumnIndex(COLUMN_LASTKNOWNLOCATION)) + " ";
+//                dbString += "\n";
+//            }
+//            c.moveToNext();
+//        }
+//        db.close();
+//        return dbString;
+//    }
 
     // returns detail of the route in String[] format, 0-rowid, 1-Tag Name, 2-Enabled, 3-Stolen, 4-timesappeared, 5-lastknownlocation, 6- owner, 7-remark
     public String[] getTagDetails(String tagName){

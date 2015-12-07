@@ -1,7 +1,9 @@
 package com.example.randolph.irisapp;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,6 +19,7 @@ public class AddTagActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_tag);
+        tagDB = new MyDBHandler(this,null,null,1);
     }
 
     @Override
@@ -44,7 +47,8 @@ public class AddTagActivity extends AppCompatActivity {
     public void add(View view){
         EditText name = (EditText)findViewById(R.id.tagname);
         EditText id = (EditText)findViewById(R.id.tagid);
-        DBTags newTag = new DBTags(id.getText().toString(),1,0,0,"","",name.getText().toString());
+        DBTags newTag = new DBTags(id.getText().toString(),1,0,0,"",name.getText().toString(),"");
+        if(tagDB == null) Log.e("TAG", "Null tagDB");
         tagDB.addTag(newTag);
         Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
     }
