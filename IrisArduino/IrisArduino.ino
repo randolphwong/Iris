@@ -28,34 +28,34 @@ uint8_t ttArraySize = 0;
 void updateTagTimeArray(Tag *tag) {
     bool toInsertTag = true;
     unsigned long currentTime = millis(); // get the current time in ms
-    Serial.print("Current time is ");
-    Serial.println(currentTime);
+    //Serial.print("Current time is ");
+    //Serial.println(currentTime);
     // If tag is already in the array, then we just update the time
 
-    Serial.println("Checking if tag is already in array...");
+    //Serial.println("Checking if tag is already in array...");
     for (int i = 0; i != ttArraySize; ++i) {
         if (tagTimeArray[i].id == tag->getID()) {
-            Serial.println("Yup, it is.");
-            Serial.print("Tag time stamp updated from ");
-            Serial.print(tagTimeArray[i].time);
+            //Serial.println("Yup, it is.");
+            //Serial.print("Tag time stamp updated from ");
+            //Serial.print(tagTimeArray[i].time);
             tagTimeArray[i].time = currentTime; // update the time stamp in the array
-            Serial.print(" to ");
-            Serial.println(tagTimeArray[i].time);
+            //Serial.print(" to ");
+            //Serial.println(tagTimeArray[i].time);
             toInsertTag = false; // tag is already in the array
         }
     }
 
     // Remove any tag whose time stamp has expired
-    Serial.println("Removing any tag whose time stamp has expired...");
+    //Serial.println("Removing any tag whose time stamp has expired...");
     for (int i = ttArraySize - 1; i >= 0; --i) {
         if ((currentTime - tagTimeArray[i].time) > TAG_READ_TIME_THRESHOLD) { // tag i time stamp expired
-            Serial.print("time stamp of tag to be removed: ");
-            Serial.println(tagTimeArray[i].time);
-            Serial.print("Time difference: ");
-            Serial.println(tagTimeArray[i].time - currentTime);
-            Serial.print("Tag ");
-            Serial.print(tagTimeArray[i].id);
-            Serial.println(" removed.");
+            //Serial.print("time stamp of tag to be removed: ");
+            //Serial.println(tagTimeArray[i].time);
+            //Serial.print("Time difference: ");
+            //Serial.println(tagTimeArray[i].time - currentTime);
+            //Serial.print("Tag ");
+            //Serial.print(tagTimeArray[i].id);
+            //Serial.println(" removed.");
             for (int j = i; j != ttArraySize - 1; ++j)
                 tagTimeArray[j] = tagTimeArray[j + 1];
             ttArraySize--; // reduce size by 1
@@ -63,13 +63,13 @@ void updateTagTimeArray(Tag *tag) {
     }
 
     if (toInsertTag && (ttArraySize < TAG_COUNT_THRESHOLD)) {
-        Serial.println("Adding it to the array...");
+        //Serial.println("Adding it to the array...");
         tagTimeArray[ttArraySize].id = tag->getID();
         tagTimeArray[ttArraySize].time = currentTime;
         ttArraySize++;
     }
-    Serial.print("Array Updated. New size is: ");
-    Serial.println(ttArraySize);
+    //Serial.print("Array Updated. New size is: ");
+    //Serial.println(ttArraySize);
 }
 
 void setup() {
@@ -130,8 +130,8 @@ void loop() {
                 else { // reader is in read state
                     // TODO: Need to detect the correct number of enabled-and-not-stolen tags to unlock door.
                     // Probably need to do something when a stolen/disabled tag is detected.
-                    Serial.print(tag.isEnabled() ? "Tag is enabled" : "Tag is disabled");
-                    Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
+                    //Serial.print(tag.isEnabled() ? "Tag is enabled" : "Tag is disabled");
+                    //Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
                     if (tag.isEnabled() && !tag.isStolen()) {
                         updateTagTimeArray(&tag);
                         if (ttArraySize == TAG_COUNT_THRESHOLD) // enough tags detected to unlock door
