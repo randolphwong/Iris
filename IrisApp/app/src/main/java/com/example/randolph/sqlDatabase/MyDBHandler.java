@@ -21,7 +21,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
     public static final String COLUMN_STOLEN ="stolen";
     public static final String COLUMN_TIMESAPPEARED ="timesappeared";
     public static final String COLUMN_LASTKNOWNLOCATION ="lastknownlocation";
-    public static final String COLUMN_OWNER="ownersname";
+    public static final String COLUMN_TAGNAME ="TAGname";
     public static final String COLUMN_TAGITEM ="remark";
 
 
@@ -33,7 +33,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
                 COLUMN_TAGID + " TEXT, " +
                 COLUMN_ENABLED + " INTEGER, " + COLUMN_STOLEN + " INTEGER, " +
                 COLUMN_TIMESAPPEARED + " INTEGER, " +
-                COLUMN_LASTKNOWNLOCATION + " TEXT, "+ COLUMN_OWNER + " TEXT, " +
+                COLUMN_LASTKNOWNLOCATION + " TEXT, "+ COLUMN_TAGNAME + " TEXT, " +
                 COLUMN_TAGITEM + " TEXT " + ");";
         db.execSQL(query);
     }
@@ -55,7 +55,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
         cv.put(COLUMN_STOLEN, tags.get_stolen());
         cv.put(COLUMN_TIMESAPPEARED, tags.get_timesappeared());
         cv.put(COLUMN_LASTKNOWNLOCATION, tags.get_lastknownlocation());
-        cv.put(COLUMN_OWNER, tags.get_ownersname());
+        cv.put(COLUMN_TAGNAME, tags.get_ownersname());
         cv.put(COLUMN_TAGITEM, tags.get_tagItem());
         SQLiteDatabase db = getWritableDatabase();
         db.insert(TABLE_TAG,null,cv);
@@ -89,13 +89,13 @@ public class MyDBHandler extends SQLiteOpenHelper {
         return dbString;
     }
 
-    // returns detail of the route in String[] format, 0-columnid, 1-Tag Name, 2-Enabled, 3-Stolen, 4-timesappeared, 5-lastknownlocation, 6- owner, 7-remark
-    public String[] getTagDetails(String tagid){
-        String[] columns = new String[]{COLUMN_ID, COLUMN_TAGID, COLUMN_ENABLED, COLUMN_STOLEN, COLUMN_TIMESAPPEARED, COLUMN_LASTKNOWNLOCATION, COLUMN_OWNER,
+    // returns detail of the route in String[] format, 0-rowid, 1-Tag Name, 2-Enabled, 3-Stolen, 4-timesappeared, 5-lastknownlocation, 6- owner, 7-remark
+    public String[] getTagDetails(String tagName){
+        String[] columns = new String[]{COLUMN_ID, COLUMN_TAGID, COLUMN_ENABLED, COLUMN_STOLEN, COLUMN_TIMESAPPEARED, COLUMN_LASTKNOWNLOCATION, COLUMN_TAGNAME,
                 COLUMN_TAGITEM};
         SQLiteDatabase db = getWritableDatabase();
         long i=1;
-        Cursor c = db.query(TABLE_TAG, columns, COLUMN_TAGID + " =?", new String[]{tagid}, null, null, null);
+        Cursor c = db.query(TABLE_TAG, columns, COLUMN_TAGNAME + " =?", new String[]{tagName}, null, null, null);
         String[] s = new String[]{null,null,null,null,null,null,null,null};
         if(c!=null && !c.isAfterLast()){
             c.moveToFirst();
@@ -149,14 +149,14 @@ public class MyDBHandler extends SQLiteOpenHelper {
     }
 
     public void updateData(long id, String name, String name2, long coordx, long coordy, String walktime,
-                           String bustime, String taxitime, String buscost, String taxicost, String desc){
+                           String bustime){
         ContentValues cv=new ContentValues();
         cv.put(COLUMN_TAGID, name + " to " + name2);
         cv.put(COLUMN_ENABLED, name);
         cv.put(COLUMN_STOLEN, name2);
         cv.put(COLUMN_TIMESAPPEARED, coordx);
         cv.put(COLUMN_LASTKNOWNLOCATION,coordy);
-        cv.put(COLUMN_OWNER, walktime);
+        cv.put(COLUMN_TAGNAME, walktime);
         cv.put(COLUMN_TAGITEM, bustime);
 
         SQLiteDatabase db = getWritableDatabase();

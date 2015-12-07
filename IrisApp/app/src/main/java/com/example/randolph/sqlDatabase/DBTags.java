@@ -14,9 +14,6 @@ public class DBTags {
     private String _ownersname;
     private String _tagItem;
 
-    public DBTags() {
-    }
-
     public DBTags(String _tagID, Integer _enabled, Integer _stolen, Integer _timesappeared, String _lastknownlocation,
                   String _ownersname, String _tagItem) {
         this._tagID = _tagID;

@@ -26,6 +26,10 @@
             android:name=".EditTagActivity"
             android:label="@string/title_activity_edit_tag" >
         </activity>
+        <activity
+            android:name=".AddTagActivity"
+            android:label="@string/title_activity_add_tag" >
+        </activity>
     </application>
 
 </manifest>

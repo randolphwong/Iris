@@ -10,8 +10,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.example.randolph.sqlDatabase.MyDBHandler;
+
 public class EditTagActivity extends AppCompatActivity {
 
+    MyDBHandler tagDB;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +64,8 @@ public class EditTagActivity extends AppCompatActivity {
 
     public void delete(View view){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Deleted",Toast.LENGTH_SHORT).show();
+        String[] tagDetails = tagDB.getTagDetails(MainActivity.tagName);
+        tagDB.deleteTag(Long.parseLong(tagDetails[0]));
     }
 
     /**
@@ -69,6 +74,8 @@ public class EditTagActivity extends AppCompatActivity {
      */
     public void reportLost(View view){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Reported",Toast.LENGTH_SHORT).show();
+        String[] tagDetails = tagDB.getTagDetails(MainActivity.tagName);
+
     }
 
 
