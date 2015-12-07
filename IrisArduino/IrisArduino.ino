@@ -73,7 +73,8 @@ void updateTagTimeArray(Tag *tag) {
 }
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(9600); // communication between PC
+    Serial1.begin(9600); // communication between android
 
     wg.begin(); // start wiegand listener
     tagDB.load(); // load data from Flash/EEPROM
@@ -105,7 +106,7 @@ void loop() {
                 // If the reader is not in read state, then we probably need to update the database.
                 if (readerState != READ && withinTimeLimit()) { // reader not in read state
                     switch(readerState) {
-                        case ENABLE: // user wants to enable a tag
+                        case ADD: // user wants to enable a tag
                             tag.enable();
                             Serial.println("Tag enabled.");
                             break;
@@ -153,8 +154,8 @@ void loop() {
             }
 	}
 
-    if (Serial.available()) { // got some signal from the app
-        char readVal = Serial.read();// read whatever is sent from the app
+    if (Serial1.available()) { // got some signal from the app
+        char readVal = Serial1.read();// read whatever is sent from the app
         if (readVal == 'R') { // default state
             readerState = READ;
             stateTimeStamp = 0; // reset state time stamp
@@ -166,10 +167,10 @@ void loop() {
                     readerState = ADD;
                     Serial.println("Add mode.");
                     break;
-                case 'E': // user wants to enabled a tag
-                    readerState = ENABLE;
-                    Serial.println("Enable mode.");
-                    break;
+                //case 'E': // user wants to enabled a tag
+                    //readerState = ENABLE;
+                    //Serial.println("Enable mode.");
+                    //break;
                 case 'D': // user wants to disable a tag
                     readerState = DISABLE;
                     Serial.println("Disable mode.");
