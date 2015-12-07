@@ -11,7 +11,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.example.randolph.sqlDatabase.MyDBHandler;
-
+//randy ortan
 public class EditTagActivity extends AppCompatActivity {
 
     MyDBHandler tagDB;
