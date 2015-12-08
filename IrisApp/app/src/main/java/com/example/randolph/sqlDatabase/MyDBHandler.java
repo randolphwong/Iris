@@ -40,6 +40,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
                 COLUMN_LASTKNOWNLOCATION + " TEXT, "+ COLUMN_TAGNAME + " TEXT, " +
                 COLUMN_TAGITEM + " TEXT " + ");";
         db.execSQL(query);
+
     }
 
     @Override
@@ -70,6 +71,22 @@ public class MyDBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db=getWritableDatabase();
         db.delete(TABLE_TAG, COLUMN_ID + "=" + id, null);
     }
+    public void eraseDatabase(){
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
+
+        Cursor c= db.rawQuery(query, null);
+
+        c.moveToFirst();
+
+        while (!c.isAfterLast()){
+            if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
+                deleteTag(Long.parseLong(c.getString(c.getColumnIndex(COLUMN_ID))));
+            }
+            c.moveToNext();
+        }
+        db.close();
+    }
 
     public String databaseToString(){
         String dbString="";
@@ -92,7 +109,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
         db.close();
         return dbString;
     }
-    public List<String> getNames(){
+    public List<String> getTagList(){
         List<String> names = new ArrayList<>();
         SQLiteDatabase db = getWritableDatabase();
         String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
@@ -100,15 +117,38 @@ public class MyDBHandler extends SQLiteOpenHelper {
         Cursor c= db.rawQuery(query, null);
 
         c.moveToFirst();
-
+        String tagInfo;
         while (!c.isAfterLast()){
+            tagInfo = "";
             if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
-                names.add(c.getString(c.getColumnIndex(COLUMN_TAGNAME)));
+                tagInfo += c.getString(c.getColumnIndex(COLUMN_TAGNAME)).replace(" ", "") + "          Status: ";
+
+                tagInfo += Integer.parseInt(c.getString(c.getColumnIndex(COLUMN_ENABLED))) == 1 ? "Enabled    " : "Disabled    ";
+
+                tagInfo += Integer.parseInt(c.getString(c.getColumnIndex(COLUMN_STOLEN))) == 1 ? "Stolen!!!" : "";
+                names.add(tagInfo);
             }
             c.moveToNext();
         }
         db.close();
         return names;
+    }
+
+
+    public boolean checkExistence(String tagName){
+        boolean exist = false;
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
+        Cursor c= db.rawQuery(query, null);
+        c.moveToFirst();
+
+        while(!c.isAfterLast()){
+            if(c.getString(c.getColumnIndex(COLUMN_TAGNAME)).equals(tagName)) exist = true;
+            c.moveToNext();
+        }
+
+        db.close();
+        return exist;
     }
 
     // returns detail of the route in String[] format, 0-rowid, 1-Tag Name, 2-Enabled, 3-Stolen, 4-timesappeared, 5-lastknownlocation, 6- owner, 7-remark

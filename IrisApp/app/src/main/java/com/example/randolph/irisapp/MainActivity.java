@@ -1,7 +1,6 @@
 package com.example.randolph.irisapp;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,9 +26,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         tagDB = new MyDBHandler(this,null,null,1);
         initialize();
-        new refreshList().execute();
     }
-
+    @Override
+    protected void onResume(){
+        super.onResume();
+        initialize();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -59,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
      */
     public void initialize(){
         if(tagDB == null) Log.e("TAG", "tagDB is null");
-        if(tagDB.getNames() == null) Log.e("TAG","getNames is null");
-        final String[] data = tagDB.getNames().toArray(new String[tagDB.getNames().size()]);
+        if(tagDB.getTagList() == null) Log.e("TAG","getTagList is null");
+        final String[] data = tagDB.getTagList().toArray(new String[tagDB.getTagList().size()]);
         tagList = (ListView)findViewById(R.id.listView);
         arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,data);
         tagList.setAdapter(arrayAdapter);
@@ -68,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
         tagList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                tagName = data[position];
+                tagName = data[position].split(" ")[0];
+                Log.e("TAG",tagName);
                 Intent intent = new Intent(MainActivity.this, EditTagActivity.class);
                 startActivity(intent);
             }
@@ -81,23 +84,8 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private class refreshList extends AsyncTask<String,String,String>{
-        @Override
-        protected void onPreExecute(){
-            initialize();
-        }
-
-        protected String doInBackground(String...params){
-            if(databaseUpdated) publishProgress();
-            return "All done";
-        }
-
-        protected void onProgressUpdate(String...params){
-            initialize();
-        }
-
-        protected void onPostExecute(String result){
-            initialize();
-        }
+    public void clearDB(View view){
+        tagDB.eraseDatabase();
+        initialize();
     }
 }

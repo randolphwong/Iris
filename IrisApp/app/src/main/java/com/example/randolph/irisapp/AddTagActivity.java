@@ -51,11 +51,16 @@ public class AddTagActivity extends AppCompatActivity {
 
     public void add(View view){
         EditText name = (EditText)findViewById(R.id.tagname);
-        EditText id = (EditText)findViewById(R.id.tagid);
-        DBTags newTag = new DBTags(id.getText().toString(),1,0,0,"",name.getText().toString(),"");
-        //if(tagDB == null) Log.e("TAG", "Null tagDB");
-        tagDB.addTag(newTag);
-        Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
-        MainActivity.databaseUpdated = true;
+        if(tagDB.checkExistence(name.getText().toString())){
+            Toast.makeText(getApplicationContext(),"Duplicate Tags!",Toast.LENGTH_SHORT).show();
+        }else{
+            EditText id = (EditText)findViewById(R.id.tagid);
+            DBTags newTag = new DBTags(id.getText().toString(),1,0,0,"",name.getText().toString().replace(" ",""),"");
+            //if(tagDB == null) Log.e("TAG", "Null tagDB");
+            tagDB.addTag(newTag);
+            Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
+            MainActivity.databaseUpdated = true;
+        }
+
     }
 }
