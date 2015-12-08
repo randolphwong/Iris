@@ -1,6 +1,7 @@
 package com.example.randolph.irisapp;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +16,7 @@ import com.example.randolph.sqlDatabase.MyDBHandler;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static boolean databaseUpdated;
     MyDBHandler tagDB;
     private ListView tagList;
     private ArrayAdapter arrayAdapter;
@@ -25,10 +27,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         tagDB = new MyDBHandler(this,null,null,1);
         initialize();
-        final TempDatabase database = new TempDatabase();
-        String[] data = database.getData();
-
+        new refreshList().execute();
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -68,14 +69,35 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 tagName = data[position];
-                Intent intent = new Intent(MainActivity.this,EditTagActivity.class);
+                Intent intent = new Intent(MainActivity.this, EditTagActivity.class);
                 startActivity(intent);
             }
         });
+        databaseUpdated = false;
     }
 
     public void addTag(View view){
         Intent intent = new Intent(MainActivity.this,AddTagActivity.class);
         startActivity(intent);
+    }
+
+    private class refreshList extends AsyncTask<String,String,String>{
+        @Override
+        protected void onPreExecute(){
+            initialize();
+        }
+
+        protected String doInBackground(String...params){
+            if(databaseUpdated) publishProgress();
+            return "All done";
+        }
+
+        protected void onProgressUpdate(String...params){
+            initialize();
+        }
+
+        protected void onPostExecute(String result){
+            initialize();
+        }
     }
 }

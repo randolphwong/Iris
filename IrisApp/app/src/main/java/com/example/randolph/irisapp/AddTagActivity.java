@@ -56,5 +56,6 @@ public class AddTagActivity extends AppCompatActivity {
         //if(tagDB == null) Log.e("TAG", "Null tagDB");
         tagDB.addTag(newTag);
         Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
+        MainActivity.databaseUpdated = true;
     }
 }

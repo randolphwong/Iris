@@ -73,6 +73,7 @@ public class EditTagActivity extends AppCompatActivity {
     public void delete(View view){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Deleted",Toast.LENGTH_SHORT).show();
         tagDB.deleteTag(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
     }
 
     /**
@@ -82,6 +83,7 @@ public class EditTagActivity extends AppCompatActivity {
     public void reportLost(View view){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Reported",Toast.LENGTH_SHORT).show();
         tagDB.reportLost(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
     }
 
     /**
@@ -91,11 +93,13 @@ public class EditTagActivity extends AppCompatActivity {
     public void enableTag(){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + "Enabled",Toast.LENGTH_SHORT).show();
         tagDB.enableTag(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
     }
 
     public void disableTag(){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + "Disabled",Toast.LENGTH_SHORT).show();
         tagDB.disableTag(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
     }
 
 
