@@ -1,5 +1,6 @@
 package com.example.randolph.irisapp;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -25,11 +26,6 @@ public class EditTagActivity extends AppCompatActivity {
         tagDB = new MyDBHandler(this,null,null,1);
         final ToggleButton toggle = (ToggleButton)findViewById(R.id.enable);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            /**
-             * TODO: Implement onCheckedChanged method. When the toggle button change status, change the status enabled/disabled of this tag
-             *
-             */
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked){
                     toggle.setText("Enabled");
@@ -37,6 +33,19 @@ public class EditTagActivity extends AppCompatActivity {
                 }else{
                     toggle.setText("Disabled");
                     disableTag();
+                }
+            }
+        });
+
+        final ToggleButton lost = (ToggleButton)findViewById(R.id.lost);
+        lost.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    lost.setText("Lost!");
+                    reportLost();
+                }else{
+                    lost.setText("Safe");
+                    found();
                 }
             }
         });
@@ -66,7 +75,7 @@ public class EditTagActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO: Test delete function. When the delete method is called, delete that tag from database
+     * TODO: Send message to Arduino, synchronize the databases
      *
      */
 
@@ -74,20 +83,28 @@ public class EditTagActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Deleted",Toast.LENGTH_SHORT).show();
         tagDB.deleteTag(Long.parseLong(tagDetails[0]));
         MainActivity.databaseUpdated = true;
+        Intent intent = new Intent(this,MainActivity.class);
+        startActivity(intent);
     }
 
     /**
-     * TODO: Test report lost function. When the reportLost method is called, mark the corresponding tag in database as lost
-     * @param view
+     * TODO: Send message to Arduino, synchronize the databases
+     *
      */
-    public void reportLost(View view){
+    public void reportLost(){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Reported",Toast.LENGTH_SHORT).show();
         tagDB.reportLost(Long.parseLong(tagDetails[0]));
         MainActivity.databaseUpdated = true;
     }
 
+    public void found(){
+        Toast.makeText(getApplicationContext(),MainActivity.tagName + " Found",Toast.LENGTH_SHORT).show();
+        tagDB.found(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
+    }
+
     /**
-     * TODO: Test enableTag and disableTag function. When the reportLost method is called, mark the corresponding tag in database as lost
+     * TODO: Send message to Arduino, synchronize the databases
      *
      */
     public void enableTag(){

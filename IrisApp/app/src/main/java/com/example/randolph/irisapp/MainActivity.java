@@ -20,6 +20,11 @@ public class MainActivity extends AppCompatActivity {
     private ListView tagList;
     private ArrayAdapter arrayAdapter;
     public static String tagName;
+
+    /**
+     * TODO: Connect to Arduino using bluetooth
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,22 +65,26 @@ public class MainActivity extends AppCompatActivity {
      *
      */
     public void initialize(){
-        if(tagDB == null) Log.e("TAG", "tagDB is null");
-        if(tagDB.getTagList() == null) Log.e("TAG","getTagList is null");
         final String[] data = tagDB.getTagList().toArray(new String[tagDB.getTagList().size()]);
         tagList = (ListView)findViewById(R.id.listView);
-        arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,data);
-        tagList.setAdapter(arrayAdapter);
+        if(data.length == 0){
+            String[] noTag = {"No Tags Yet"};
+            arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,noTag);
+            tagList.setAdapter(arrayAdapter);
+        }else{
+            arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,data);
+            tagList.setAdapter(arrayAdapter);
+            tagList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    tagName = data[position].split(" ")[0];
+                    Log.e("TAG", tagName);
+                    Intent intent = new Intent(MainActivity.this, EditTagActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
 
-        tagList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                tagName = data[position].split(" ")[0];
-                Log.e("TAG",tagName);
-                Intent intent = new Intent(MainActivity.this, EditTagActivity.class);
-                startActivity(intent);
-            }
-        });
         databaseUpdated = false;
     }
 

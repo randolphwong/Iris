@@ -24,21 +24,23 @@
         android:layout_alignParentStart="true"
         android:onClick="delete"/>
 
-    <Button
+    <ToggleButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Report Lost"
         android:id="@+id/lost"
-        android:layout_below="@+id/button"
-        android:layout_alignParentStart="true"
-        android:onClick="reportLost"/>
+        android:textOff="Safe"
+        android:textOn="Lost!"
+        android:layout_below="@+id/tagname"
+        android:layout_toEndOf="@+id/button"
+        android:checked="false" />
 
     <ToggleButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Disable"
         android:id="@+id/enable"
-        android:layout_below="@+id/lost"
-        android:layout_alignParentStart="true"
-        android:checked="false" />
+        android:checked="true"
+        android:textOff="Disabled"
+        android:textOn="Enabled"
+        android:layout_alignTop="@+id/lost"
+        android:layout_toEndOf="@+id/lost" />
 </RelativeLayout>

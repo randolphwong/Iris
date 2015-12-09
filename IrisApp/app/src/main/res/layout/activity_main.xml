@@ -10,7 +10,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/listView"
-        android:layout_below="@+id/addtag" />
+        android:layout_below="@+id/addtag"
+        android:background="@drawable/custom_listview"/>
 
     <Button
         android:layout_width="wrap_content"

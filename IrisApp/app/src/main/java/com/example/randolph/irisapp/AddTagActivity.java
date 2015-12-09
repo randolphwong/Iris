@@ -45,7 +45,7 @@ public class AddTagActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO: Test add tag function. When the reportLost method is called, mark the corresponding tag in database as lost
+     * TODO: Send message to Arduino, synchronize the databases
      * @param view
      */
 
@@ -56,7 +56,6 @@ public class AddTagActivity extends AppCompatActivity {
         }else{
             EditText id = (EditText)findViewById(R.id.tagid);
             DBTags newTag = new DBTags(id.getText().toString(),1,0,0,"",name.getText().toString().replace(" ",""),"");
-            //if(tagDB == null) Log.e("TAG", "Null tagDB");
             tagDB.addTag(newTag);
             Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
             MainActivity.databaseUpdated = true;

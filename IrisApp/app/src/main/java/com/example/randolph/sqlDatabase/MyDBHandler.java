@@ -234,6 +234,16 @@ public class MyDBHandler extends SQLiteOpenHelper {
         db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
     }
 
+    public void found(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_STOLEN,0);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+
+
     public void reportFound(long id){
         ContentValues cv = new ContentValues();
         cv.put(COLUMN_STOLEN,0);
