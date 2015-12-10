@@ -6,6 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Created by junhaochiew on 6/11/2015.
  */
@@ -16,12 +20,12 @@ public class MyDBHandler extends SQLiteOpenHelper {
     public static final String TABLE_TAG ="tagtable";
 
     public static final String COLUMN_ID="_id";
-    public static final String COLUMN_TAGID ="tagname";
+    public static final String COLUMN_TAGID ="tagID";
     public static final String COLUMN_ENABLED ="enabled";
     public static final String COLUMN_STOLEN ="stolen";
     public static final String COLUMN_TIMESAPPEARED ="timesappeared";
     public static final String COLUMN_LASTKNOWNLOCATION ="lastknownlocation";
-    public static final String COLUMN_OWNER="ownersname";
+    public static final String COLUMN_TAGNAME ="TAGname";
     public static final String COLUMN_TAGITEM ="remark";
 
 
@@ -33,9 +37,10 @@ public class MyDBHandler extends SQLiteOpenHelper {
                 COLUMN_TAGID + " TEXT, " +
                 COLUMN_ENABLED + " INTEGER, " + COLUMN_STOLEN + " INTEGER, " +
                 COLUMN_TIMESAPPEARED + " INTEGER, " +
-                COLUMN_LASTKNOWNLOCATION + " TEXT, "+ COLUMN_OWNER + " TEXT, " +
+                COLUMN_LASTKNOWNLOCATION + " TEXT, "+ COLUMN_TAGNAME + " TEXT, " +
                 COLUMN_TAGITEM + " TEXT " + ");";
         db.execSQL(query);
+
     }
 
     @Override
@@ -55,7 +60,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
         cv.put(COLUMN_STOLEN, tags.get_stolen());
         cv.put(COLUMN_TIMESAPPEARED, tags.get_timesappeared());
         cv.put(COLUMN_LASTKNOWNLOCATION, tags.get_lastknownlocation());
-        cv.put(COLUMN_OWNER, tags.get_ownersname());
+        cv.put(COLUMN_TAGNAME, tags.get_tagname());
         cv.put(COLUMN_TAGITEM, tags.get_tagItem());
         SQLiteDatabase db = getWritableDatabase();
         db.insert(TABLE_TAG,null,cv);
@@ -65,6 +70,22 @@ public class MyDBHandler extends SQLiteOpenHelper {
     public void deleteTag(long id){
         SQLiteDatabase db=getWritableDatabase();
         db.delete(TABLE_TAG, COLUMN_ID + "=" + id, null);
+    }
+    public void eraseDatabase(){
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
+
+        Cursor c= db.rawQuery(query, null);
+
+        c.moveToFirst();
+
+        while (!c.isAfterLast()){
+            if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
+                deleteTag(Long.parseLong(c.getString(c.getColumnIndex(COLUMN_ID))));
+            }
+            c.moveToNext();
+        }
+        db.close();
     }
 
     public String databaseToString(){
@@ -88,14 +109,55 @@ public class MyDBHandler extends SQLiteOpenHelper {
         db.close();
         return dbString;
     }
+    public List<String> getTagList(){
+        List<String> names = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
 
-    // returns detail of the route in String[] format, 0-columnid, 1-Tag Name, 2-Enabled, 3-Stolen, 4-timesappeared, 5-lastknownlocation, 6- owner, 7-remark
-    public String[] getTagDetails(String tagid){
-        String[] columns = new String[]{COLUMN_ID, COLUMN_TAGID, COLUMN_ENABLED, COLUMN_STOLEN, COLUMN_TIMESAPPEARED, COLUMN_LASTKNOWNLOCATION, COLUMN_OWNER,
+        Cursor c= db.rawQuery(query, null);
+
+        c.moveToFirst();
+        String tagInfo;
+        while (!c.isAfterLast()){
+            tagInfo = "";
+            if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
+                tagInfo += c.getString(c.getColumnIndex(COLUMN_TAGNAME)).replace(" ", "") + "          Status: ";
+
+                tagInfo += Integer.parseInt(c.getString(c.getColumnIndex(COLUMN_ENABLED))) == 1 ? "Enabled    " : "Disabled    ";
+
+                tagInfo += Integer.parseInt(c.getString(c.getColumnIndex(COLUMN_STOLEN))) == 1 ? "Stolen!!!" : "";
+                names.add(tagInfo);
+            }
+            c.moveToNext();
+        }
+        db.close();
+        return names;
+    }
+
+
+    public boolean checkExistence(String tagName){
+        boolean exist = false;
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM '" + TABLE_TAG + "' WHERE 1";
+        Cursor c= db.rawQuery(query, null);
+        c.moveToFirst();
+
+        while(!c.isAfterLast()){
+            if(c.getString(c.getColumnIndex(COLUMN_TAGNAME)).equals(tagName)) exist = true;
+            c.moveToNext();
+        }
+
+        db.close();
+        return exist;
+    }
+
+    // returns detail of the route in String[] format, 0-rowid, 1-Tag Name, 2-Enabled, 3-Stolen, 4-timesappeared, 5-lastknownlocation, 6- owner, 7-remark
+    public String[] getTagDetails(String tagName){
+        String[] columns = new String[]{COLUMN_ID, COLUMN_TAGID, COLUMN_ENABLED, COLUMN_STOLEN, COLUMN_TIMESAPPEARED, COLUMN_LASTKNOWNLOCATION, COLUMN_TAGNAME,
                 COLUMN_TAGITEM};
         SQLiteDatabase db = getWritableDatabase();
         long i=1;
-        Cursor c = db.query(TABLE_TAG, columns, COLUMN_TAGID + " =?", new String[]{tagid}, null, null, null);
+        Cursor c = db.query(TABLE_TAG, columns, COLUMN_TAGNAME + " =?", new String[]{tagName}, null, null, null);
         String[] s = new String[]{null,null,null,null,null,null,null,null};
         if(c!=null && !c.isAfterLast()){
             c.moveToFirst();
@@ -149,19 +211,61 @@ public class MyDBHandler extends SQLiteOpenHelper {
     }
 
     public void updateData(long id, String name, String name2, long coordx, long coordy, String walktime,
-                           String bustime, String taxitime, String buscost, String taxicost, String desc){
+                           String bustime){
         ContentValues cv=new ContentValues();
         cv.put(COLUMN_TAGID, name + " to " + name2);
         cv.put(COLUMN_ENABLED, name);
         cv.put(COLUMN_STOLEN, name2);
         cv.put(COLUMN_TIMESAPPEARED, coordx);
         cv.put(COLUMN_LASTKNOWNLOCATION,coordy);
-        cv.put(COLUMN_OWNER, walktime);
+        cv.put(COLUMN_TAGNAME, walktime);
         cv.put(COLUMN_TAGITEM, bustime);
 
         SQLiteDatabase db = getWritableDatabase();
         db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id, null);
 
+    }
+
+    public void reportLost(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_STOLEN,1);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+    public void found(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_STOLEN,0);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+
+
+    public void reportFound(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_STOLEN,0);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+    public void enableTag(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_ENABLED,1);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
+    }
+
+    public void disableTag(long id){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_ENABLED,0);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(TABLE_TAG,cv,COLUMN_ID + "=" + id,null);
     }
 
 

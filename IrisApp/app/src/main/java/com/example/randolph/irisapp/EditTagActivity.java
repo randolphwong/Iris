@@ -1,5 +1,6 @@
 package com.example.randolph.irisapp;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,26 +11,45 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.example.randolph.sqlDatabase.MyDBHandler;
+//randy ortan
 public class EditTagActivity extends AppCompatActivity {
 
+    MyDBHandler tagDB;
+    String[] tagDetails;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_tag);
         TextView tagName = (TextView)findViewById(R.id.tagname);
         tagName.setText("Editing Tag: " + MainActivity.tagName);
+        tagDB = new MyDBHandler(this,null,null,1);
         final ToggleButton toggle = (ToggleButton)findViewById(R.id.enable);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            /**
-             * TODO: Implement onCheckedChanged method. When the toggle button change status, change the status enabled/disabled of this tag
-             *
-             */
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) toggle.setText("Enabled");
-                else toggle.setText("Disabled");
+                if(isChecked){
+                    toggle.setText("Enabled");
+                    enableTag();
+                }else{
+                    toggle.setText("Disabled");
+                    disableTag();
+                }
             }
         });
+
+        final ToggleButton lost = (ToggleButton)findViewById(R.id.lost);
+        lost.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    lost.setText("Lost!");
+                    reportLost();
+                }else{
+                    lost.setText("Safe");
+                    found();
+                }
+            }
+        });
+        tagDetails = tagDB.getTagDetails(MainActivity.tagName);
     }
 
     @Override
@@ -55,20 +75,48 @@ public class EditTagActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO: Implement delete function. When the delete method is called, delete that tag from database
+     * TODO: Send message to Arduino, synchronize the databases
      *
      */
 
     public void delete(View view){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Deleted",Toast.LENGTH_SHORT).show();
+        tagDB.deleteTag(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
+        Intent intent = new Intent(this,MainActivity.class);
+        startActivity(intent);
     }
 
     /**
-     * TODO: Implement report lost function. When the reportLost method is called, mark the corresponding tag in database as lost
-     * @param view
+     * TODO: Send message to Arduino, synchronize the databases
+     *
      */
-    public void reportLost(View view){
+    public void reportLost(){
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Reported",Toast.LENGTH_SHORT).show();
+        tagDB.reportLost(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
+    }
+
+    public void found(){
+        Toast.makeText(getApplicationContext(),MainActivity.tagName + " Found",Toast.LENGTH_SHORT).show();
+        tagDB.found(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
+    }
+
+    /**
+     * TODO: Send message to Arduino, synchronize the databases
+     *
+     */
+    public void enableTag(){
+        Toast.makeText(getApplicationContext(),MainActivity.tagName + "Enabled",Toast.LENGTH_SHORT).show();
+        tagDB.enableTag(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
+    }
+
+    public void disableTag(){
+        Toast.makeText(getApplicationContext(),MainActivity.tagName + "Disabled",Toast.LENGTH_SHORT).show();
+        tagDB.disableTag(Long.parseLong(tagDetails[0]));
+        MainActivity.databaseUpdated = true;
     }
 
 

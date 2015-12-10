@@ -10,6 +10,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/listView"
+        android:layout_below="@+id/addtag"
+        android:background="@drawable/custom_listview"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Tag"
+        android:id="@+id/addtag"
+        android:onClick="addTag"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear Tags"
+        android:id="@+id/clear"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_toEndOf="@+id/addtag"
+        android:onClick="clearDB"/>
 </RelativeLayout>
