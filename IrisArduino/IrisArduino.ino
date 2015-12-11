@@ -72,6 +72,20 @@ void updateTagTimeArray(Tag *tag) {
     //Serial.println(ttArraySize);
 }
 
+void updateTagTimeArray() {
+    unsigned long currentTime = millis(); // get the current time in ms
+
+    // Remove any tag whose time stamp has expired
+    //Serial.println("Removing any tag whose time stamp has expired...");
+    for (int i = ttArraySize - 1; i >= 0; --i) {
+        if ((currentTime - tagTimeArray[i].time) > TAG_READ_TIME_THRESHOLD) { // tag i time stamp expired
+            for (int j = i; j != ttArraySize - 1; ++j)
+                tagTimeArray[j] = tagTimeArray[j + 1];
+            ttArraySize--; // reduce size by 1
+        }
+    }
+}
+
 void setup() {
     Serial.begin(9600); // communication between PC
     Serial1.begin(9600); // communication between android
@@ -98,13 +112,14 @@ void loop() {
 	if(wg.available()) { // RFID tag detected
             uint16_t id = wg.getCode(); // get the tag ID
             Serial.print("Tag detected: ");
-            Serial.println(id);
+            Serial.print(id);
             Tag *tagPointer = tagDB.get(id); // obtain a pointer to the Tag with the specified id from the database
             if (tagPointer != NULL) { // tag id exists in database
                 Tag tag(tagPointer); // create a Tag from the pointer
     
                 // If the reader is not in read state, then we probably need to update the database.
                 if (readerState != READ && withinTimeLimit()) { // reader not in read state
+                    Serial.println();
                     switch(readerState) {
                         case ADD: // user wants to enable a tag
                             tag.enable();
@@ -131,18 +146,21 @@ void loop() {
                 else { // reader is in read state
                     // TODO: Need to detect the correct number of enabled-and-not-stolen tags to unlock door.
                     // Probably need to do something when a stolen/disabled tag is detected.
-                    //Serial.print(tag.isEnabled() ? "Tag is enabled" : "Tag is disabled");
-                    //Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
+                    Serial.print(tag.isEnabled() ? ", it is enabled" : ", it is disabled");
+                    Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
                     if (tag.isEnabled() && !tag.isStolen()) {
                         updateTagTimeArray(&tag);
-                        if (ttArraySize == TAG_COUNT_THRESHOLD) // enough tags detected to unlock door
+                        if (ttArraySize == TAG_COUNT_THRESHOLD) { // enough tags detected to unlock door
                             Serial.println("OPEN SESAME!!!!");
+                            digitalWrite(led, HIGH);
+                        }
                         else // not enough tags detected to unlock door
                             Serial.println("Need more tags!!!");
                     }
                 }
             }
             else { // tag id does not exist in database
+                Serial.println();
                 Tag tag; // create a new tag
                 tag.setID(id); // set the id
                 tag.enable(); // automatically enable it
@@ -153,6 +171,12 @@ void loop() {
                 }
             }
 	}
+    else { // no tags detected
+        updateTagTimeArray();
+        if (ttArraySize != TAG_COUNT_THRESHOLD) { // enough tags detected to unlock door
+            digitalWrite(led, LOW);
+        }
+    }
 
     if (Serial1.available()) { // got some signal from the app
         char readVal = Serial1.read();// read whatever is sent from the app
