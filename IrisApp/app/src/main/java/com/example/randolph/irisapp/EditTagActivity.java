@@ -12,11 +12,14 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.example.randolph.sqlDatabase.MyDBHandler;
-//randy ortan
+import com.example.randolph.bluetooth.BlueToothApp;
+
 public class EditTagActivity extends AppCompatActivity {
 
+    public BlueToothApp BTApp;
     MyDBHandler tagDB;
     String[] tagDetails;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,6 +27,9 @@ public class EditTagActivity extends AppCompatActivity {
         TextView tagName = (TextView)findViewById(R.id.tagname);
         tagName.setText("Editing Tag: " + MainActivity.tagName);
         tagDB = new MyDBHandler(this,null,null,1);
+
+        BlueToothApp BTApp = (BlueToothApp) getApplicationContext();
+
         final ToggleButton toggle = (ToggleButton)findViewById(R.id.enable);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

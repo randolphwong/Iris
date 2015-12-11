@@ -10,16 +10,22 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.randolph.bluetooth.BlueToothApp;
 import com.example.randolph.sqlDatabase.DBTags;
 import com.example.randolph.sqlDatabase.MyDBHandler;
 
 public class AddTagActivity extends AppCompatActivity {
+
+    public BlueToothApp BTApp;
     MyDBHandler tagDB;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_tag);
         tagDB = new MyDBHandler(this,null,null,1);
+
+        BlueToothApp BTApp = (BlueToothApp) getApplicationContext();
     }
 
     @Override

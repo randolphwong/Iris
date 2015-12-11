@@ -12,9 +12,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.example.randolph.sqlDatabase.MyDBHandler;
+import com.example.randolph.bluetooth.BlueToothApp;
 
 public class MainActivity extends AppCompatActivity {
 
+    public BlueToothApp BTApp;
     public static boolean databaseUpdated;
     MyDBHandler tagDB;
     private ListView tagList;
@@ -30,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tagDB = new MyDBHandler(this,null,null,1);
+
+        BlueToothApp BTApp = (BlueToothApp) getApplicationContext();
+
         initialize();
     }
     @Override
