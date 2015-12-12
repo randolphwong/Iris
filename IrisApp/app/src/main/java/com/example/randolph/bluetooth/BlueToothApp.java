@@ -1,4 +1,3 @@
-// TODO: implement asynctask so that it can callback.
 package com.example.randolph.bluetooth;
 
 import android.app.Application;
@@ -7,7 +6,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.util.Log;
@@ -15,6 +13,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,15 +22,25 @@ public class BlueToothApp extends Application {
     private static final String arduinoBTAddress = "00:BA:55:56:86:33";
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-    //private Context context;
+    private static final String ADD_TAG = "-ADDTAG-";
+    private static final String DELETE_TAG = "-DELETETAG-";
+    private static final String ENABLE_TAG = "-ENABLETAG-";
+    private static final String DISABLE_TAG = "-DISABLETAG-";
+    private static final String LOSE_TAG = "-LOSETAG-";
+    private static final String FOUND_TAG = "-FOUNDTAG-";
+
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice arduinoBTDevice;
     private BluetoothSocket arduinoBTSocket;
-    private BluetoothListenTask mBluetoothListenTask;
     private InputStream arduinoInStream;
     private OutputStream arduinoOutStream;
+    private String inputFromArduino;
 
     private boolean connectedToArduino = false;
+
+    public boolean isConnected() {
+        return connectedToArduino;
+    }
 
     public boolean connect() {
         Context context = getApplicationContext();
@@ -65,8 +74,7 @@ public class BlueToothApp extends Application {
             arduinoOutStream = arduinoBTSocket.getOutputStream();
             arduinoInStream = arduinoBTSocket.getInputStream();
 
-            mBluetoothListenTask = new BluetoothListenTask();
-            mBluetoothListenTask.execute();
+            inputFromArduino = new String();
 
             connectedToArduino = true;
             return true;
@@ -103,6 +111,21 @@ public class BlueToothApp extends Application {
         }
     }
 
+    public void write(String msg) {
+        msg = "-" + msg + "-";
+        if (connectedToArduino) {
+            try {
+                arduinoOutStream.write(msg.getBytes());
+            }
+            catch (IOException ex) {
+                Log.e("Bluetooth Application", Log.getStackTraceString(ex));
+            }
+        }
+        else {
+            Log.e("Bluetooth Application", "Not connected to bluetooth device.");
+        }
+    }
+
     public void write(byte[] msg) {
         if (connectedToArduino) {
             try {
@@ -117,43 +140,59 @@ public class BlueToothApp extends Application {
         }
     }
 
-    private class BluetoothListenTask extends AsyncTask<Void, String, Void> {
-
-        private boolean running = true;
-
-        public void pause() {
-            running = false;
-        }
-
-        protected Void doInBackground(Void... params) {
-            try {
-                String inputFromArduino = new String();
-                while (running) {
-                    int bytesAvailable = arduinoInStream.available();
-                    if (bytesAvailable > 0) {
-                        byte[] buffer = new byte[bytesAvailable];
-                        arduinoInStream.read(buffer);
-                        inputFromArduino = inputFromArduino + new String(buffer);
-                        // need to make sure the full message is obtained
-                        if (inputFromArduino.contains("!")) {
-                            publishProgress(inputFromArduino.trim());
-                            inputFromArduino = "";
-                        }
-                    }
+    public String read() {
+        try {
+            int bytesAvailable = arduinoInStream.available();
+            if (bytesAvailable > 0) {
+                byte[] buffer = new byte[bytesAvailable];
+                arduinoInStream.read(buffer);
+                inputFromArduino = inputFromArduino + new String(buffer);
+                // need to make sure the full message is obtained
+                if (inputFromArduino.contains("!")) {
+                    inputFromArduino = inputFromArduino.trim();
+                    String toReturn = inputFromArduino.substring(0, inputFromArduino.length() - 1);
+                    inputFromArduino = "";
+                    return toReturn;
                 }
             }
-            catch (IOException ex) {
-                Log.e("Bluetooth Application", Log.getStackTraceString(ex));
-            }
-
-            return null;
+        }
+        catch (IOException ex) {
+            Log.e("Bluetooth Application", Log.getStackTraceString(ex));
         }
 
-        protected void onProgressUpdate(String... progress) {
-            String fullString = new String();
-            for (String s : progress)
-                fullString = fullString + s;
-            //msgTextView.setText(fullString);
+        return null;
+    }
+
+    public void addTag() {
+        write(ADD_TAG.getBytes());
+    }
+
+    public void deleteTag() {
+        write(DELETE_TAG.getBytes());
+    }
+
+    public void disableTag() {
+        write(DISABLE_TAG.getBytes());
+    }
+
+    public void enableTag() {
+        write(ENABLE_TAG.getBytes());
+    }
+
+    public void loseTag() {
+        write(LOSE_TAG.getBytes());
+    }
+
+    public void foundTag() {
+        write(FOUND_TAG.getBytes());
+    }
+
+    public void close() {
+        try {
+            // close bluetooth connection
+            arduinoBTSocket.close();
+        }
+        catch (Exception e) {
         }
     }
 }

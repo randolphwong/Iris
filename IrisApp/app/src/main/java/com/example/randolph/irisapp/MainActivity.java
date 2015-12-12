@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.randolph.sqlDatabase.MyDBHandler;
 import com.example.randolph.bluetooth.BlueToothApp;
@@ -23,17 +24,18 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter arrayAdapter;
     public static String tagName;
 
-    /**
-     * TODO: Connect to Arduino using bluetooth
-     * @param savedInstanceState
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tagDB = new MyDBHandler(this,null,null,1);
 
-        BlueToothApp BTApp = (BlueToothApp) getApplicationContext();
+        BTApp = (BlueToothApp) getApplicationContext();
+        if (BTApp.connect())
+            Toast.makeText(getApplicationContext(),"Connected to arduino.",Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(getApplicationContext(),"Unable to connect to arduino.",Toast.LENGTH_SHORT).show();
+            
 
         initialize();
     }
@@ -41,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
         initialize();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        BTApp.close();
     }
 
     @Override
