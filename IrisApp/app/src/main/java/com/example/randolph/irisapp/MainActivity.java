@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter arrayAdapter;
     public static String tagName;
 
+    // TODO: put BT connection in asynctask instead.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
