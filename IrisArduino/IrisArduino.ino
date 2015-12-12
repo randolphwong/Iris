@@ -4,6 +4,7 @@
 #include "Servo.h"
 
 #define TAG_READ_TIME_THRESHOLD 20000 // Allow tag reads to persist for 20 seconds
+#define TAG_COUNT_MAX_THRESHOLD 10
 #define led 13
 #define STATE_TIME_LIMIT 20000 // Allow non-read state to persist for 20 seconds
 
@@ -37,7 +38,7 @@ struct TagTime {
     unsigned long time = 0;
 };
 
-struct TagTime tagTimeArray[TAG_COUNT_THRESHOLD];
+struct TagTime tagTimeArray[TAG_COUNT_MAX_THRESHOLD];
 uint8_t ttArraySize = 0;
 
 void clearSerialBuffer() {
@@ -189,7 +190,7 @@ void loop() {
                     Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
                     if (tag.isEnabled() && !tag.isStolen()) {
                         updateTagTimeArray(&tag);
-                        if (ttArraySize == tagDB.getTagThreshold()) { // enough tags detected to unlock door
+                        if (ttArraySize == tagDB.getThreshold()) { // enough tags detected to unlock door
                             Serial.println("OPEN SESAME!!!!");
                             digitalWrite(led, HIGH);
                             for(pos1=0;pos1 < 180; pos1 += 1)
@@ -218,7 +219,7 @@ void loop() {
 	}
     else { // no tags detected
         updateTagTimeArray();
-        if (ttArraySize != TAG_COUNT_THRESHOLD) { // enough tags detected to unlock door
+        if (ttArraySize != tagDB.getThreshold()) { // enough tags detected to unlock door
             digitalWrite(led, LOW);
         }
     }
