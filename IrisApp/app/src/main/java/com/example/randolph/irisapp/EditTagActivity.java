@@ -60,6 +60,22 @@ public class EditTagActivity extends AppCompatActivity {
         tagDetails = tagDB.getTagDetails(MainActivity.tagName);
         tagID = tagDetails[1];
         tagColumnID = tagDetails[0];
+
+        TextView time_tag = (TextView)findViewById(R.id.time_text);
+        if(tagDetails[4]!=null){
+            time_tag.setText(tagDetails[4]);
+        }
+        else{
+            time_tag.setText("Not Recorded");
+        }
+
+        TextView location_tag = (TextView)findViewById(R.id.location_text);
+        if(tagDetails[5]!=null){
+            location_tag.setText(tagDetails[5]);
+        }
+        else{
+            location_tag.setText("Not Founded");
+        }
     }
 
     @Override
