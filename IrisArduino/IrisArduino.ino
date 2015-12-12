@@ -3,19 +3,19 @@
 #include "Wiegand.h"
 #include "Servo.h"
 
-#define TAG_COUNT_THRESHOLD 3
 #define TAG_READ_TIME_THRESHOLD 20000 // Allow tag reads to persist for 20 seconds
 #define led 13
 #define STATE_TIME_LIMIT 20000 // Allow non-read state to persist for 20 seconds
 
-enum State {READ, ADD, ENABLE, DISABLE, REPORT_STOLEN, REPORT_FOUND};
+enum State {READ, ADD, ENABLE, DISABLE, REPORT_STOLEN, REPORT_FOUND, SET_THRESHOLD};
 
 const String STATE_STRING[] = {String("ADDTAG"),
                                String("ENABLETAG"),
                                String("DELETETAG"),
                                String("DISABLETAG"),
                                String("LOSETAG"),
-                               String("FOUNDTAG")};
+                               String("FOUNDTAG"),
+                               String("SETTHRESHOLD")};
 
 unsigned long stateTimeStamp = 0;
 
@@ -46,10 +46,18 @@ void clearSerialBuffer() {
     bufferIndex = 0;
 }
 
-void updateTag(String tagID) {
-    uint16_t id = tagID.toInt();
+void update(String str) {
+    uint16_t val = str.toInt();
 
-    Tag *tagPointer = tagDB.get(id); // obtain a pointer to the Tag with the specified id from the database
+    if (readerState == SET_THRESHOLD) {
+        tagDB.setThreshold(val);
+        Serial.print("Updated threshold. Now requires ");
+        Serial.print(val);
+        Serial.println(" tags to unlock system.");
+        return;
+    }
+
+    Tag *tagPointer = tagDB.get(val); // obtain a pointer to the Tag with the specified id from the database
 
     if (tagPointer == NULL) { // tag id exists in database
         Serial.println("Tag doesn't exist in database.");
@@ -116,7 +124,7 @@ void updateTagTimeArray(Tag *tag) {
         }
     }
 
-    if (toInsertTag && (ttArraySize < TAG_COUNT_THRESHOLD)) {
+    if (toInsertTag && (ttArraySize < tagDB.getThreshold())) {
         //Serial.println("Adding it to the array...");
         tagTimeArray[ttArraySize].id = tag->getID();
         tagTimeArray[ttArraySize].time = currentTime;
@@ -181,7 +189,7 @@ void loop() {
                     Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
                     if (tag.isEnabled() && !tag.isStolen()) {
                         updateTagTimeArray(&tag);
-                        if (ttArraySize == TAG_COUNT_THRESHOLD) { // enough tags detected to unlock door
+                        if (ttArraySize == tagDB.getTagThreshold()) { // enough tags detected to unlock door
                             Serial.println("OPEN SESAME!!!!");
                             digitalWrite(led, HIGH);
                             for(pos1=0;pos1 < 180; pos1 += 1)
@@ -215,13 +223,6 @@ void loop() {
         }
     }
     
-const String STATE_STRING[] = {String("ADDTAG"),
-                               String("ENABLETAG"),
-                               String("DELETETAG"),
-                               String("DISABLETAG"),
-                               String("LOSETAG"),
-                               String("FOUNDTAG")};
-
     if (Serial1.available()) {
         char byteRead = Serial1.read();
         if (byteRead == '-') {
@@ -232,7 +233,6 @@ const String STATE_STRING[] = {String("ADDTAG"),
                 String stringRead(serialBuffer);
                 int state = -1;
                 for (int i = 0; i != bufferIndex; ++i) {
-                    //Serial.println(STATE_STRING[i]);
                     if (stringRead.equals(STATE_STRING[i]))
                         state = i;
                 }
@@ -262,8 +262,12 @@ const String STATE_STRING[] = {String("ADDTAG"),
                         readerState = REPORT_FOUND;
                         Serial.println("Report found mode.");
                         break;
+                    case 6: // user wants to report a tag as stolen
+                        readerState = SET_THRESHOLD;
+                        Serial.println("Set tag threshold mode.");
+                        break;
                     default:
-                        updateTag(stringRead);
+                        update(stringRead);
                         break;
                 }
                 clearSerialBuffer();

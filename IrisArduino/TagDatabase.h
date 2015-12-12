@@ -14,6 +14,7 @@
 
 #define SCHEMA 123
 #define DATABASE_SIZE 8
+#define TAG_DEFAULT_THRESHOLD 2
 
 class TagDatabase {
 
@@ -25,6 +26,8 @@ public:
     void update(Tag*);
     bool contains(Tag*);
     bool contains(uint16_t);
+    uint8_t getThreshold();
+    void setThreshold(uint8_t);
     Tag* get(uint16_t);
 
 private:
@@ -33,6 +36,7 @@ private:
     int8_t get(Tag*);
 
     int8_t size;
+    uint8_t threshold;
     Tag database[8];
 };
 
