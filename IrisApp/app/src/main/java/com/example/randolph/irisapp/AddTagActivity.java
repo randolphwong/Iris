@@ -60,8 +60,13 @@ public class AddTagActivity extends AppCompatActivity {
     @Override
     public void onPause() {  // activity is not in the foreground but still alive
         super.onPause();
-        mTask.pause();
-        mTask = null;
+        try {
+            mTask.pause();
+            mTask = null;
+        }
+        catch (Exception e) {
+            Log.e("AddTagActivity", Log.getStackTraceString(ex));
+        }
     }
 
     public void add(View view){
