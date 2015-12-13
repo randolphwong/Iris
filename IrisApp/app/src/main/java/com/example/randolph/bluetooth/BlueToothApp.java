@@ -28,6 +28,8 @@ public class BlueToothApp extends Application {
     private static final String DISABLE_TAG = "-DISABLETAG-";
     private static final String LOSE_TAG = "-LOSETAG-";
     private static final String FOUND_TAG = "-FOUNDTAG-";
+    private static final String SET_THRESHOLD = "-SETTHRESHOLD-";
+    private static final String GET_THRESHOLD = "-GETTHRESHOLD-";
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice arduinoBTDevice;
@@ -148,6 +150,7 @@ public class BlueToothApp extends Application {
                 arduinoInStream.read(buffer);
                 inputFromArduino = inputFromArduino + new String(buffer);
                 // need to make sure the full message is obtained
+                Log.e("readFromArduino",inputFromArduino);
                 if (inputFromArduino.contains("!")) {
                     inputFromArduino = inputFromArduino.trim();
                     String toReturn = inputFromArduino.substring(0, inputFromArduino.length() - 1);
@@ -186,6 +189,10 @@ public class BlueToothApp extends Application {
     public void foundTag() {
         write(FOUND_TAG.getBytes());
     }
+
+    public void getThreshold(){ write(GET_THRESHOLD.getBytes());}
+
+    public void setThreshold(){ write(SET_THRESHOLD.getBytes());}
 
     public void close() {
         try {

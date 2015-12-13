@@ -28,4 +28,13 @@
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@+id/addtag"
         android:onClick="clearDB"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Threshold"
+        android:id="@+id/threshold"
+        android:layout_alignTop="@+id/clear"
+        android:layout_toEndOf="@+id/clear"
+        android:onClick="editThreshold"/>
 </RelativeLayout>

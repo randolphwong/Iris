@@ -62,6 +62,7 @@ public class AddTagActivity extends AppCompatActivity {
         super.onPause();
         try {
             mTask.pause();
+            mTask.cancel(true);
             mTask = null;
         }
         catch (Exception ex) {

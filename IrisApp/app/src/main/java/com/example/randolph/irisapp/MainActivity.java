@@ -107,4 +107,9 @@ public class MainActivity extends AppCompatActivity {
         tagDB.eraseDatabase();
         initialize();
     }
+
+    public void editThreshold(View view){
+        Intent intent = new Intent(MainActivity.this,ThresholdActivity.class);
+        startActivity(intent);
+    }
 }
