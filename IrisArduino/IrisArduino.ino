@@ -22,7 +22,8 @@ const String STATE_STRING[] = {String("ADDTAG"),
                                String("DISABLETAG"),
                                String("LOSETAG"),
                                String("FOUNDTAG"),
-                               String("SETTHRESHOLD")};
+                               String("SETTHRESHOLD"),
+                               String("GETTHRESHOLD")};
 
 unsigned long stateTimeStamp = 0;
 
@@ -222,7 +223,7 @@ uint8_t getUpdatedThreshold() {
 }
 
 bool meetRequirement() {
-    if (ttArraySize != getUpdatedThreshold()) return false;
+    if (ttArraySize < getUpdatedThreshold()) return false;
 
     for (int i = 0; i != ttArraySize; ++i) {
         uint16_t id = tagTimeArray[i].id;
@@ -284,6 +285,7 @@ void loop() {
         if (c != '\n')
             buffer[bufIndex++] = c;
         else {
+            // TODO: allow time to be set in Serial monitor
             uint16_t id = String(buffer).toInt();
             process(id);
             clearBuffer();
@@ -341,6 +343,11 @@ void loop() {
                     case 6: // user wants to report a tag as stolen
                         readerState = SET_THRESHOLD;
                         Serial.println("Set tag threshold mode.");
+                        break;
+                    case 7: // user wants to get the tag threshold
+                        Serial1.print(String(getUpdatedThreshold()) + "!");
+                        Serial.println("Sent tag threshold mode.");
+                        readerState = READ;
                         break;
                     default:
                         update(stringRead);
