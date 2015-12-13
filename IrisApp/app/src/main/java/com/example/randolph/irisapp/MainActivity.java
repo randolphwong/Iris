@@ -74,10 +74,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * TODO: Test the initialize method
-     *
-     */
     public void initialize(){
         final String[] data = tagDB.getTagList().toArray(new String[tagDB.getTagList().size()]);
         tagList = (ListView)findViewById(R.id.listView);
@@ -91,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
             tagList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    tagName = data[position].split(" ")[0];
+                    tagName = data[position].split("-")[0];
                     Log.e("TAG", tagName);
                     Intent intent = new Intent(MainActivity.this, EditTagActivity.class);
                     startActivity(intent);
@@ -110,5 +106,10 @@ public class MainActivity extends AppCompatActivity {
     public void clearDB(View view){
         tagDB.eraseDatabase();
         initialize();
+    }
+
+    public void editThreshold(View view){
+        Intent intent = new Intent(MainActivity.this,ThresholdActivity.class);
+        startActivity(intent);
     }
 }

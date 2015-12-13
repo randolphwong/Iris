@@ -62,9 +62,10 @@ public class AddTagActivity extends AppCompatActivity {
         super.onPause();
         try {
             mTask.pause();
+            mTask.cancel(true);
             mTask = null;
         }
-        catch (Exception e) {
+        catch (Exception ex) {
             Log.e("AddTagActivity", Log.getStackTraceString(ex));
         }
     }
@@ -92,7 +93,7 @@ public class AddTagActivity extends AppCompatActivity {
         }
 
         protected Void doInBackground(Void... params) {
-            while (running) {
+            while (running&&!isCancelled()) {
                 String idString = BTApp.read();
                 if (idString != null) {
                     publishProgress(idString);
@@ -110,7 +111,8 @@ public class AddTagActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),"Duplicate Tags!",Toast.LENGTH_SHORT).show();
             }
             else {
-                DBTags newTag = new DBTags(tagIDString,1,0,0,"",tagNameString.replace(" ",""),"");
+                //DBTags newTag = new DBTags(tagIDString,1,0,0,"",tagNameString.replace(" ",""),"");
+                DBTags newTag = new DBTags(tagIDString,1,0,0,"",tagNameString,"");
                 tagDB.addTag(newTag);
                 Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
                 MainActivity.databaseUpdated = true;
