@@ -84,7 +84,7 @@ public class ThresholdActivity extends AppCompatActivity {
 
         protected Void doInBackground(Void... params) {
             Log.e("AsynTask","Running");
-            while (running) {
+            while (running&&!isCancelled()) {
                 String idString = BTApp.read();
 
                 if (idString != null) {

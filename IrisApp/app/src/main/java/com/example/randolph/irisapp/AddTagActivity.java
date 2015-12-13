@@ -93,7 +93,7 @@ public class AddTagActivity extends AppCompatActivity {
         }
 
         protected Void doInBackground(Void... params) {
-            while (running) {
+            while (running&&!isCancelled()) {
                 String idString = BTApp.read();
                 if (idString != null) {
                     publishProgress(idString);
