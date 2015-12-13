@@ -74,10 +74,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * TODO: Test the initialize method
-     *
-     */
     public void initialize(){
         final String[] data = tagDB.getTagList().toArray(new String[tagDB.getTagList().size()]);
         tagList = (ListView)findViewById(R.id.listView);
