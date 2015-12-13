@@ -64,7 +64,7 @@ public class AddTagActivity extends AppCompatActivity {
             mTask.pause();
             mTask = null;
         }
-        catch (Exception e) {
+        catch (Exception ex) {
             Log.e("AddTagActivity", Log.getStackTraceString(ex));
         }
     }
