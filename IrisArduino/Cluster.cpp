@@ -7,7 +7,7 @@ void merge(uint16_t a[], const uint8_t low, const uint8_t mid, const uint8_t hig
 	uint8_t left = low;
 	uint8_t right = mid+1;
 	uint8_t current = 0;
-	// Merges the two arrays into temp[] 
+
 	while(left <= mid && right <= high) {
 		if(a[left] <= a[right]) {
 			temp[current] = a[left];
@@ -20,20 +20,12 @@ void merge(uint16_t a[], const uint8_t low, const uint8_t mid, const uint8_t hig
 		current++;
 	}
 
-	// Completes the array 
-
-        // Extreme example a = 1, 2, 3 || 4, 5, 6
-        // The temp array has already been filled with 1, 2, 3, 
-        // So, the right side of array a will be used to fill temp.
 	if(left > mid) { 
 		for(int i=right; i <= high;i++) {
 			temp[current] = a[i];
 			current++;
 		}
 	}
-        // Extreme example a = 6, 5, 4 || 3, 2, 1
-        // The temp array has already been filled with 1, 2, 3
-        // So, the left side of array a will be used to fill temp.
 	else {  
 		for(int i=left; i <= mid; i++) {
 			temp[current] = a[i];
