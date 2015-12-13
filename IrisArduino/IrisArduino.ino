@@ -3,7 +3,7 @@
 #include "Wiegand.h"
 #include "Servo.h"
 
-#define TAG_READ_TIME_THRESHOLD 20000 // Allow tag reads to persist for 20 seconds
+#define TAG_READ_TIME_THRESHOLD 5000 // Allow tag reads to persist for 5 seconds
 #define TAG_COUNT_MAX_THRESHOLD 10
 #define led 13
 #define STATE_TIME_LIMIT 20000 // Allow non-read state to persist for 20 seconds
@@ -23,6 +23,9 @@ unsigned long stateTimeStamp = 0;
 char serialBuffer[64];
 uint8_t bufferIndex = 0;
 bool isAppMsg = false;
+
+char buffer[10];
+uint8_t bufIndex = 0;
 
 Servo servo1;
 int pos1 = 0;
@@ -45,6 +48,12 @@ void clearSerialBuffer() {
     for (int i = 0; i != bufferIndex; ++i)
         serialBuffer[i] = 0;
     bufferIndex = 0;
+}
+
+void clearBuffer() {
+    for (int i = 0; i != bufIndex; ++i)
+        buffer[i] = 0;
+    bufIndex = 0;
 }
 
 void update(String str) {
@@ -175,55 +184,96 @@ bool withinTimeLimit() {
     return inTime;
 }
 
-void loop() {
-	if(wg.available()) { // RFID tag detected
-            uint16_t id = wg.getCode(); // get the tag ID
-            Serial.print("Tag detected: ");
-            Serial.print(id);
-            Tag *tagPointer = tagDB.get(id); // obtain a pointer to the Tag with the specified id from the database
-            if (tagPointer != NULL) { // tag id exists in database
-                Tag tag(tagPointer); // create a Tag from the pointer
-    
-                // If the reader is not in read state, then we probably need to update the database.
-                if (readerState == READ) { // reader is in read state
-                    Serial.print(tag.isEnabled() ? ", it is enabled" : ", it is disabled");
-                    Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
-                    if (tag.isEnabled() && !tag.isStolen()) {
-                        updateTagTimeArray(&tag);
-                        if (ttArraySize == tagDB.getThreshold()) { // enough tags detected to unlock door
-                            Serial.println("OPEN SESAME!!!!");
-                            digitalWrite(led, HIGH);
-                            for(pos1=0;pos1 < 180; pos1 += 1)
-                            {
-                                servo1.write(pos1);
-                                delay(10);
-                            }
-                        }
-                        else // not enough tags detected to unlock door
-                            Serial.println("Need more tags!!!");
-                    }
-                }
-            }
-            else { // tag id does not exist in database
-                Serial.println();
-                Tag tag; // create a new tag
-                tag.setID(id); // set the id
-                tag.enable(); // automatically enable it
-                if (readerState == ADD) { // user wants to add a new tag into the system
-                    tagDB.add(&tag); // add tag into database (default state of tag is 'disabled')
-                    readerState = READ; // set it back to read state
-                    Serial1.print(String(id) + "!");
-                    Serial.println("Tag added to system.");
-                }
-            }
-	}
-    else { // no tags detected
-        updateTagTimeArray();
-        if (ttArraySize != tagDB.getThreshold()) { // enough tags detected to unlock door
-            digitalWrite(led, LOW);
+void openDoor() {
+    if (pos1 < 180) {
+        for(pos1=0;pos1 < 180; pos1 += 1) {
+            servo1.write(pos1);
+            delay(10);
         }
     }
-    
+}
+
+void closeDoor() {
+    if (pos1 > 0) {
+        for(pos1 = 180; pos1>=1; pos1-=1) {
+          servo1.write(pos1);
+          delay(10);
+        }
+    }
+}
+
+bool meetRequirement() {
+    if (ttArraySize != tagDB.getThreshold()) return false;
+
+    for (int i = 0; i != ttArraySize; ++i) {
+        uint16_t id = tagTimeArray[i].id;
+        Tag *tagPointer = tagDB.get(id); // obtain a pointer to the Tag with the specified id from the database
+        if (tagPointer != NULL) { // tag id exists in database
+            Tag tag(tagPointer); // create a Tag from the pointer
+            if (tag.isStolen() || !tag.isEnabled()) return false;
+        }
+    }
+    return true;
+}
+
+void process(uint16_t id) {
+    Serial.print("Tag detected: ");
+    Serial.print(id);
+
+    Tag *tagPointer = tagDB.get(id); // obtain a pointer to the Tag with the specified id from the database
+    if (tagPointer != NULL) { // tag id exists in database
+        Tag tag(tagPointer); // create a Tag from the pointer
+
+        // If the reader is not in read state, then we probably need to update the database.
+        if (readerState == READ) { // reader is in read state
+            Serial.print(tag.isEnabled() ? ", it is enabled" : ", it is disabled");
+            Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
+            if (tag.isEnabled() && !tag.isStolen()) {
+                updateTagTimeArray(&tag);
+                if (meetRequirement()) { // enough tags detected to unlock door
+                //if (ttArraySize == tagDB.getThreshold()) { // enough tags detected to unlock door
+                    Serial.println("OPEN SESAME!!!!");
+                    digitalWrite(led, HIGH);
+                    openDoor();
+                }
+                else // not enough tags detected to unlock door
+                    Serial.println("Need more tags!!!");
+            }
+        }
+    }
+    else { // tag id does not exist in database
+        Serial.println();
+        Tag tag; // create a new tag
+        tag.setID(id); // set the id
+        tag.enable(); // automatically enable it
+        if (readerState == ADD) { // user wants to add a new tag into the system
+            tagDB.add(&tag); // add tag into database (default state of tag is 'disabled')
+            readerState = READ; // set it back to read state
+            Serial1.print(String(id) + "!");
+            Serial.println("Tag added to system.");
+        }
+    }
+}
+
+void loop() {
+    if (Serial.available()) {
+        char c = Serial.read();
+        if (c != '\n')
+            buffer[bufIndex++] = c;
+        else {
+            uint16_t id = String(buffer).toInt();
+            process(id);
+            clearBuffer();
+        }
+    }
+    else { // no tags detected
+        updateTagTimeArray();
+        if (!meetRequirement()) {
+            digitalWrite(led, LOW);
+            closeDoor();
+        }
+    }
+
     if (Serial1.available()) {
         char byteRead = Serial1.read();
         if (byteRead == '-') {
