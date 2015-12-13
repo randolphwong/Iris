@@ -6,7 +6,11 @@
 #define TAG_READ_TIME_THRESHOLD 5000 // Allow tag reads to persist for 5 seconds
 #define TAG_COUNT_MAX_THRESHOLD 10
 #define led 13
+#define servopin 9
+#define lock 7
 #define STATE_TIME_LIMIT 20000 // Allow non-read state to persist for 20 seconds
+
+#define SPIN_LIMIT 30
 
 enum State {READ, ADD, ENABLE, DISABLE, REPORT_STOLEN, REPORT_FOUND, SET_THRESHOLD};
 
@@ -165,7 +169,7 @@ void setup() {
     wg.begin(); // start wiegand listener
     tagDB.load(); // load data from Flash/EEPROM
 
-    servo1.attach(9);
+    servo1.attach(servopin);
 
     // Set the reader state
     readerState = READ;
@@ -173,6 +177,8 @@ void setup() {
     clearSerialBuffer();
 
     pinMode(led, OUTPUT);
+    pinMode(lock, INPUT);
+    servo1.write(0);
 }
 
 bool withinTimeLimit() {
@@ -184,18 +190,18 @@ bool withinTimeLimit() {
     return inTime;
 }
 
-void openDoor() {
-    if (pos1 < 180) {
-        for(pos1=0;pos1 < 180; pos1 += 1) {
+void unlockDoor() {
+    if (pos1 < SPIN_LIMIT) {
+        for(pos1=0;pos1 < SPIN_LIMIT; pos1 += 1) {
             servo1.write(pos1);
             delay(10);
         }
     }
 }
 
-void closeDoor() {
+void lockDoor() {
     if (pos1 > 0) {
-        for(pos1 = 180; pos1>=1; pos1-=1) {
+        for(pos1 = SPIN_LIMIT; pos1>=1; pos1-=1) {
           servo1.write(pos1);
           delay(10);
         }
@@ -234,7 +240,7 @@ void process(uint16_t id) {
                 //if (ttArraySize == tagDB.getThreshold()) { // enough tags detected to unlock door
                     Serial.println("OPEN SESAME!!!!");
                     digitalWrite(led, HIGH);
-                    openDoor();
+                    unlockDoor();
                 }
                 else // not enough tags detected to unlock door
                     Serial.println("Need more tags!!!");
@@ -270,7 +276,9 @@ void loop() {
         updateTagTimeArray();
         if (!meetRequirement()) {
             digitalWrite(led, LOW);
-            closeDoor();
+            if (digitalRead(lock)) {
+                lockDoor();
+            }
         }
     }
 
