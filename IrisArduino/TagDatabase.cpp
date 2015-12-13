@@ -2,6 +2,7 @@
 
 TagDatabase::TagDatabase() {
     size = 0;
+    threshold = TAG_DEFAULT_THRESHOLD;
 }
 
 void TagDatabase::load() {
@@ -94,6 +95,14 @@ bool TagDatabase::contains(Tag* tag) {
 
 bool TagDatabase::contains(uint16_t id) {
     return false;
+}
+
+uint8_t TagDatabase::getThreshold() {
+    return threshold;
+}
+
+void TagDatabase::setThreshold(uint8_t threshold) {
+    this->threshold = threshold;
 }
 
 Tag* TagDatabase::get(uint16_t id) {

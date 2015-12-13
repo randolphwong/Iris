@@ -1,15 +1,30 @@
 #include "Tag.h"
 #include "TagDatabase.h"
 #include "Wiegand.h"
+#include "Servo.h"
 
-#define TAG_COUNT_THRESHOLD 3
 #define TAG_READ_TIME_THRESHOLD 20000 // Allow tag reads to persist for 20 seconds
 #define led 13
 #define STATE_TIME_LIMIT 20000 // Allow non-read state to persist for 20 seconds
 
-enum State {READ, ADD, ENABLE, DISABLE, REPORT_STOLEN, REPORT_FOUND};
+enum State {READ, ADD, ENABLE, DISABLE, REPORT_STOLEN, REPORT_FOUND, SET_THRESHOLD};
+
+const String STATE_STRING[] = {String("ADDTAG"),
+                               String("ENABLETAG"),
+                               String("DELETETAG"),
+                               String("DISABLETAG"),
+                               String("LOSETAG"),
+                               String("FOUNDTAG"),
+                               String("SETTHRESHOLD")};
 
 unsigned long stateTimeStamp = 0;
+
+char serialBuffer[64];
+uint8_t bufferIndex = 0;
+bool isAppMsg = false;
+
+Servo servo1;
+int pos1 = 0;
 
 WIEGAND wg;
 
@@ -24,6 +39,53 @@ struct TagTime {
 
 struct TagTime tagTimeArray[TAG_COUNT_THRESHOLD];
 uint8_t ttArraySize = 0;
+
+void clearSerialBuffer() {
+    for (int i = 0; i != bufferIndex; ++i)
+        serialBuffer[i] = 0;
+    bufferIndex = 0;
+}
+
+void update(String str) {
+    uint16_t val = str.toInt();
+
+    if (readerState == SET_THRESHOLD) {
+        tagDB.setThreshold(val);
+        Serial.print("Updated threshold. Now requires ");
+        Serial.print(val);
+        Serial.println(" tags to unlock system.");
+        return;
+    }
+
+    Tag *tagPointer = tagDB.get(val); // obtain a pointer to the Tag with the specified id from the database
+
+    if (tagPointer == NULL) { // tag id exists in database
+        Serial.println("Tag doesn't exist in database.");
+        return;
+    }
+
+    Tag tag(tagPointer); // create a Tag from the pointer
+
+    switch(readerState) {
+        case DISABLE: // user wants to disable a tag
+            tag.disable();
+            Serial.println("Tag disabled.");
+            break;
+        case REPORT_STOLEN: // user wants to report a tag as stolen
+            tag.setStolen(true);
+            Serial.println("Tag set as stolen.");
+            break;
+        case REPORT_FOUND: // user wants to report a tag as found
+            tag.setStolen(false);
+            Serial.println("Tag set as found.");
+            break;
+        default:
+            break;
+    }
+
+    tagDB.update(&tag); // update database
+    readerState = READ; // set it back to read state
+}
 
 void updateTagTimeArray(Tag *tag) {
     bool toInsertTag = true;
@@ -62,7 +124,7 @@ void updateTagTimeArray(Tag *tag) {
         }
     }
 
-    if (toInsertTag && (ttArraySize < TAG_COUNT_THRESHOLD)) {
+    if (toInsertTag && (ttArraySize < tagDB.getThreshold())) {
         //Serial.println("Adding it to the array...");
         tagTimeArray[ttArraySize].id = tag->getID();
         tagTimeArray[ttArraySize].time = currentTime;
@@ -93,8 +155,12 @@ void setup() {
     wg.begin(); // start wiegand listener
     tagDB.load(); // load data from Flash/EEPROM
 
+    servo1.attach(9);
+
     // Set the reader state
     readerState = READ;
+    
+    clearSerialBuffer();
 
     pinMode(led, OUTPUT);
 }
@@ -118,41 +184,19 @@ void loop() {
                 Tag tag(tagPointer); // create a Tag from the pointer
     
                 // If the reader is not in read state, then we probably need to update the database.
-                if (readerState != READ && withinTimeLimit()) { // reader not in read state
-                    Serial.println();
-                    switch(readerState) {
-                        case ADD: // user wants to enable a tag
-                            tag.enable();
-                            Serial.println("Tag enabled.");
-                            break;
-                        case DISABLE: // user wants to disable a tag
-                            tag.disable();
-                            Serial.println("Tag disabled.");
-                            break;
-                        case REPORT_STOLEN: // user wants to report a tag as stolen
-                            tag.setStolen(true);
-                            Serial.println("Tag set as stolen.");
-                            break;
-                        case REPORT_FOUND: // user wants to report a tag as found
-                            tag.setStolen(false);
-                            Serial.println("Tag set as found.");
-                            break;
-                        default:
-                            break;
-                    }
-                    tagDB.update(&tag); // update database
-                    readerState = READ; // set it back to read state
-                }
-                else { // reader is in read state
-                    // TODO: Need to detect the correct number of enabled-and-not-stolen tags to unlock door.
-                    // Probably need to do something when a stolen/disabled tag is detected.
+                if (readerState == READ) { // reader is in read state
                     Serial.print(tag.isEnabled() ? ", it is enabled" : ", it is disabled");
                     Serial.println(tag.isStolen() ? " and stolen." : " and not stolen.");
                     if (tag.isEnabled() && !tag.isStolen()) {
                         updateTagTimeArray(&tag);
-                        if (ttArraySize == TAG_COUNT_THRESHOLD) { // enough tags detected to unlock door
+                        if (ttArraySize == tagDB.getTagThreshold()) { // enough tags detected to unlock door
                             Serial.println("OPEN SESAME!!!!");
                             digitalWrite(led, HIGH);
+                            for(pos1=0;pos1 < 180; pos1 += 1)
+                            {
+                                servo1.write(pos1);
+                                delay(10);
+                            }
                         }
                         else // not enough tags detected to unlock door
                             Serial.println("Need more tags!!!");
@@ -167,6 +211,7 @@ void loop() {
                 if (readerState == ADD) { // user wants to add a new tag into the system
                     tagDB.add(&tag); // add tag into database (default state of tag is 'disabled')
                     readerState = READ; // set it back to read state
+                    Serial1.print(String(id) + "!");
                     Serial.println("Tag added to system.");
                 }
             }
@@ -177,38 +222,59 @@ void loop() {
             digitalWrite(led, LOW);
         }
     }
+    
+    if (Serial1.available()) {
+        char byteRead = Serial1.read();
+        if (byteRead == '-') {
+            if (!isAppMsg)
+                isAppMsg = true;
+            else {
+                isAppMsg = false;
+                String stringRead(serialBuffer);
+                int state = -1;
+                for (int i = 0; i != bufferIndex; ++i) {
+                    if (stringRead.equals(STATE_STRING[i]))
+                        state = i;
+                }
 
-    if (Serial1.available()) { // got some signal from the app
-        char readVal = Serial1.read();// read whatever is sent from the app
-        if (readVal == 'R') { // default state
-            readerState = READ;
-            stateTimeStamp = 0; // reset state time stamp
-            Serial.println("Read mode.");
-        }
-        else {
-            switch (readVal) {
-                case 'A': // user wants to add a new tag in the system
-                    readerState = ADD;
-                    Serial.println("Add mode.");
-                    break;
-                //case 'E': // user wants to enabled a tag
-                    //readerState = ENABLE;
-                    //Serial.println("Enable mode.");
-                    //break;
-                case 'D': // user wants to disable a tag
-                    readerState = DISABLE;
-                    Serial.println("Disable mode.");
-                    break;
-                case 'S': // user wants to report a tag as stolen
-                    readerState = REPORT_STOLEN;
-                    Serial.println("Report stolen mode.");
-                    break;
-                case 'F': // user wants to report a tag as found
-                    readerState = REPORT_FOUND;
-                    Serial.println("Report found mode.");
-                    break;
+                switch(state) {
+                    case 0: // user wants to enable a tag
+                        readerState = ADD;
+                        Serial.println("Add mode.");
+                        break;
+                    case 1: // user wants to disable a tag
+                        readerState = ENABLE;
+                        Serial.println("Enable mode.");
+                        break;
+                    case 2: // user wants to report a tag as stolen
+                        readerState = DISABLE;
+                        Serial.println("Delete mode.");
+                        break;
+                    case 3: // user wants to report a tag as found
+                        readerState = DISABLE;
+                        Serial.println("Disable mode.");
+                        break;
+                    case 4: // user wants to disable a tag
+                        readerState = REPORT_STOLEN;
+                        Serial.println("Report lost mode.");
+                        break;
+                    case 5: // user wants to report a tag as stolen
+                        readerState = REPORT_FOUND;
+                        Serial.println("Report found mode.");
+                        break;
+                    case 6: // user wants to report a tag as stolen
+                        readerState = SET_THRESHOLD;
+                        Serial.println("Set tag threshold mode.");
+                        break;
+                    default:
+                        update(stringRead);
+                        break;
+                }
+                clearSerialBuffer();
             }
-            stateTimeStamp = millis();
+        }
+        if (isAppMsg && (byteRead != '-')) {
+            serialBuffer[bufferIndex++] = byteRead;
         }
     }
 }

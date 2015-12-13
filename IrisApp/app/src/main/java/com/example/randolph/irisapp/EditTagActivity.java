@@ -19,6 +19,8 @@ public class EditTagActivity extends AppCompatActivity {
     public BlueToothApp BTApp;
     MyDBHandler tagDB;
     String[] tagDetails;
+    private String tagID;
+    private String tagColumnID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +30,7 @@ public class EditTagActivity extends AppCompatActivity {
         tagName.setText("Editing Tag: " + MainActivity.tagName);
         tagDB = new MyDBHandler(this,null,null,1);
 
-        BlueToothApp BTApp = (BlueToothApp) getApplicationContext();
+        BTApp = (BlueToothApp) getApplicationContext();
 
         final ToggleButton toggle = (ToggleButton)findViewById(R.id.enable);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -56,6 +58,8 @@ public class EditTagActivity extends AppCompatActivity {
             }
         });
         tagDetails = tagDB.getTagDetails(MainActivity.tagName);
+        tagID = tagDetails[1];
+        tagColumnID = tagDetails[0];
 
         TextView time_tag = (TextView)findViewById(R.id.time_text);
         if(tagDetails[4]!=null){
@@ -72,8 +76,6 @@ public class EditTagActivity extends AppCompatActivity {
         else{
             location_tag.setText("Not Founded");
         }
-
-
     }
 
     @Override
@@ -98,48 +100,65 @@ public class EditTagActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * TODO: Send message to Arduino, synchronize the databases
-     *
-     */
-
     public void delete(View view){
+        if (!BTApp.isConnected()) {
+            Toast.makeText(getApplicationContext(),"Phone not connected to reader.",Toast.LENGTH_LONG).show();
+            return;
+        }
+        BTApp.deleteTag();
+        BTApp.write(tagID);
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Deleted",Toast.LENGTH_SHORT).show();
-        tagDB.deleteTag(Long.parseLong(tagDetails[0]));
+        tagDB.deleteTag(Long.parseLong(tagColumnID));
         MainActivity.databaseUpdated = true;
         Intent intent = new Intent(this,MainActivity.class);
         startActivity(intent);
     }
 
-    /**
-     * TODO: Send message to Arduino, synchronize the databases
-     *
-     */
     public void reportLost(){
+        if (!BTApp.isConnected()) {
+            Toast.makeText(getApplicationContext(),"Phone not connected to reader.",Toast.LENGTH_LONG).show();
+            return;
+        }
+        BTApp.loseTag();
+        BTApp.write(tagID);
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Reported",Toast.LENGTH_SHORT).show();
-        tagDB.reportLost(Long.parseLong(tagDetails[0]));
+        tagDB.reportLost(Long.parseLong(tagColumnID));
         MainActivity.databaseUpdated = true;
     }
 
     public void found(){
+        if (!BTApp.isConnected()) {
+            Toast.makeText(getApplicationContext(),"Phone not connected to reader.",Toast.LENGTH_LONG).show();
+            return;
+        }
+        BTApp.foundTag();
+        BTApp.write(tagID);
         Toast.makeText(getApplicationContext(),MainActivity.tagName + " Found",Toast.LENGTH_SHORT).show();
-        tagDB.found(Long.parseLong(tagDetails[0]));
+        tagDB.found(Long.parseLong(tagColumnID));
         MainActivity.databaseUpdated = true;
     }
 
-    /**
-     * TODO: Send message to Arduino, synchronize the databases
-     *
-     */
     public void enableTag(){
+        if (!BTApp.isConnected()) {
+            Toast.makeText(getApplicationContext(),"Phone not connected to reader.",Toast.LENGTH_LONG).show();
+            return;
+        }
+        BTApp.enableTag();
+        BTApp.write(tagID);
         Toast.makeText(getApplicationContext(),MainActivity.tagName + "Enabled",Toast.LENGTH_SHORT).show();
-        tagDB.enableTag(Long.parseLong(tagDetails[0]));
+        tagDB.enableTag(Long.parseLong(tagColumnID));
         MainActivity.databaseUpdated = true;
     }
 
     public void disableTag(){
+        if (!BTApp.isConnected()) {
+            Toast.makeText(getApplicationContext(),"Phone not connected to reader.",Toast.LENGTH_LONG).show();
+            return;
+        }
+        BTApp.disableTag();
+        BTApp.write(tagID);
         Toast.makeText(getApplicationContext(),MainActivity.tagName + "Disabled",Toast.LENGTH_SHORT).show();
-        tagDB.disableTag(Long.parseLong(tagDetails[0]));
+        tagDB.disableTag(Long.parseLong(tagColumnID));
         MainActivity.databaseUpdated = true;
     }
 
