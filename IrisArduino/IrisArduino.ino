@@ -1,6 +1,7 @@
 #include "Tag.h"
 #include "TagDatabase.h"
 #include "Wiegand.h"
+#include "Cluster.h"
 #include "Servo.h"
 
 #define TAG_READ_TIME_THRESHOLD 5000 // Allow tag reads to persist for 5 seconds
@@ -9,6 +10,7 @@
 #define servopin 9
 #define lock 7
 #define STATE_TIME_LIMIT 20000 // Allow non-read state to persist for 20 seconds
+#define MAX_CLUSTER 20
 
 #define SPIN_LIMIT 30
 
@@ -37,6 +39,8 @@ int pos1 = 0;
 WIEGAND wg;
 
 TagDatabase tagDB;
+
+Cluster cluster;
 
 State readerState;
 
@@ -208,8 +212,17 @@ void lockDoor() {
     }
 }
 
+uint8_t getUpdatedThreshold() {
+    uint8_t threshold = tagDB.getThreshold();
+    if (cluster.getSize() == MAX_CLUSTER && threshold > 1) {
+        if (cluster.classify())
+            threshold--;
+    }
+    return threshold;
+}
+
 bool meetRequirement() {
-    if (ttArraySize != tagDB.getThreshold()) return false;
+    if (ttArraySize != getUpdatedThreshold()) return false;
 
     for (int i = 0; i != ttArraySize; ++i) {
         uint16_t id = tagTimeArray[i].id;
@@ -237,7 +250,11 @@ void process(uint16_t id) {
             if (tag.isEnabled() && !tag.isStolen()) {
                 updateTagTimeArray(&tag);
                 if (meetRequirement()) { // enough tags detected to unlock door
-                //if (ttArraySize == tagDB.getThreshold()) { // enough tags detected to unlock door
+                    unsigned long timestamp = millis();
+                    timestamp = timestamp % 86400000; // get only the time within a day
+                    timestamp /= 60000; // in minutes
+                    cluster.add((uint16_t) timestamp);
+                    cluster.print();
                     Serial.println("OPEN SESAME!!!!");
                     digitalWrite(led, HIGH);
                     unlockDoor();
