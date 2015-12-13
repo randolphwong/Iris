@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             tagList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    tagName = data[position].split(" ")[0];
+                    tagName = data[position].split("-")[0];
                     Log.e("TAG", tagName);
                     Intent intent = new Intent(MainActivity.this, EditTagActivity.class);
                     startActivity(intent);

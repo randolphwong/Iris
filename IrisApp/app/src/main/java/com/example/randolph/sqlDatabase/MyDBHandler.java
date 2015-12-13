@@ -121,7 +121,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
         while (!c.isAfterLast()){
             tagInfo = "";
             if(c.getString(c.getColumnIndex(COLUMN_TAGID))!=null){
-                tagInfo += c.getString(c.getColumnIndex(COLUMN_TAGNAME)).replace(" ", "") + "          Status: ";
+                tagInfo += c.getString(c.getColumnIndex(COLUMN_TAGNAME)) + "------Status: ";
 
                 tagInfo += Integer.parseInt(c.getString(c.getColumnIndex(COLUMN_ENABLED))) == 1 ? "Enabled    " : "Disabled    ";
 
