@@ -4,7 +4,7 @@
 #include "Cluster.h"
 #include "Servo.h"
 
-#define TAG_READ_TIME_THRESHOLD 5000 // Allow tag reads to persist for 5 seconds
+#define TAG_READ_TIME_THRESHOLD 10000 // Allow tag reads to persist for 5 seconds
 #define TAG_COUNT_MAX_THRESHOLD 10
 #define led 13
 #define servopin 9
@@ -335,17 +335,27 @@ void setup() {
 }
 
 void loop() {
+    if (wg.available()) {
+        uint16_t id = wg.getCode();
+        process(id);
+    }
+    else { // no tags detected
+        updateTagTimeArray();
+        if (!meetRequirement()) {
+            digitalWrite(led, LOW);
+            if (digitalRead(lock)) {
+                lockDoor();
+            }
+        }
+    }
+
     if (Serial.available()) {
         char c = Serial.read();
         if (c != '\n')
             buffer[bufIndex++] = c;
         else {
             // TODO: allow time to be set in Serial monitor
-            if (bufferIsInt()) { // got an ID
-                uint16_t id = String(buffer).toInt();
-                process(id);
-            }
-            else { // probably got a time
+            if (!bufferIsInt()) { // probably got a time
                 String readString(buffer);
                 if (readString.charAt(0) == 'T') {// indeed it is a time
                     // time format: TXX:XX. Example: T08:45 is 8:45am
@@ -357,15 +367,6 @@ void loop() {
 
             }
             clearBuffer();
-        }
-    }
-    else { // no tags detected
-        updateTagTimeArray();
-        if (!meetRequirement()) {
-            digitalWrite(led, LOW);
-            if (digitalRead(lock)) {
-                lockDoor();
-            }
         }
     }
 
