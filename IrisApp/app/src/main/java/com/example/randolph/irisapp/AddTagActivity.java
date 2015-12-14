@@ -60,14 +60,7 @@ public class AddTagActivity extends AppCompatActivity {
     @Override
     public void onPause() {  // activity is not in the foreground but still alive
         super.onPause();
-        try {
-            mTask.pause();
-            mTask.cancel(true);
-            mTask = null;
-        }
-        catch (Exception ex) {
-            Log.e("AddTagActivity", Log.getStackTraceString(ex));
-        }
+        destroyTask();
     }
 
     public void add(View view){
@@ -84,6 +77,36 @@ public class AddTagActivity extends AppCompatActivity {
         mTask.execute();
     }
 
+    private void destroyTask() {
+        try {
+            mTask.cancel(true);
+            mTask.pause();
+            mTask = null;
+        }
+        catch (Exception ex) {
+            Log.e("AddTagActivity", Log.getStackTraceString(ex));
+        }
+    }
+
+    private void setTagID(String id) {
+        String tagNameString = tagName.getText().toString();
+
+        tagID.setText(id);
+
+        if (tagDB.checkExistence(tagNameString)) {
+            Toast.makeText(getApplicationContext(),"Duplicate Tags!",Toast.LENGTH_SHORT).show();
+        }
+        else {
+            //DBTags newTag = new DBTags(tagIDString,1,0,0,"",tagNameString.replace(" ",""),"");
+            DBTags newTag = new DBTags(id,1,0,0,"",tagNameString,"");
+            tagDB.addTag(newTag);
+            Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
+            MainActivity.databaseUpdated = true;
+        }
+
+        destroyTask();
+    }
+
     private class ReadFromBtTask extends AsyncTask<Void, String, Void> {
 
         private boolean running = true;
@@ -93,10 +116,11 @@ public class AddTagActivity extends AppCompatActivity {
         }
 
         protected Void doInBackground(Void... params) {
-            while (running&&!isCancelled()) {
+            while (running && !isCancelled()) {
                 String idString = BTApp.read();
                 if (idString != null) {
                     publishProgress(idString);
+                    break;
                 }
             }
             return null;
@@ -104,19 +128,7 @@ public class AddTagActivity extends AppCompatActivity {
 
         protected void onProgressUpdate(String... progress) {
             String tagIDString = progress[0];
-            String tagNameString = tagName.getText().toString();
-            tagID.setText(tagIDString);
-
-            if (tagDB.checkExistence(tagNameString)) {
-                Toast.makeText(getApplicationContext(),"Duplicate Tags!",Toast.LENGTH_SHORT).show();
-            }
-            else {
-                //DBTags newTag = new DBTags(tagIDString,1,0,0,"",tagNameString.replace(" ",""),"");
-                DBTags newTag = new DBTags(tagIDString,1,0,0,"",tagNameString,"");
-                tagDB.addTag(newTag);
-                Toast.makeText(getApplicationContext(),"Added",Toast.LENGTH_SHORT).show();
-                MainActivity.databaseUpdated = true;
-            }
+            setTagID(tagIDString);
         }
     }
 }

@@ -39,6 +39,17 @@ public class ThresholdActivity extends AppCompatActivity {
     @Override
     public void onPause() {  // activity is not in the foreground but still alive
         super.onPause();
+        destroyTask();
+    }
+
+    private void startTask() {
+        if (mTask1 == null) {
+            mTask1 = new ReadFromBtTask1();
+            mTask1.execute();
+        }
+    }
+
+    private void destroyTask() {
         try {
             mTask1.pause();
             mTask1.cancel(true);
@@ -46,17 +57,14 @@ public class ThresholdActivity extends AppCompatActivity {
 
         }
         catch (Exception ex) {
-            Log.e("AddTagActivity", Log.getStackTraceString(ex));
+            Log.e("ThresholdActivity", Log.getStackTraceString(ex));
         }
     }
 
     public void getThreshold(){
 
         BTApp.getThreshold();
-        mTask1 = new ReadFromBtTask1();
-        mTask1.execute();
-
-
+        startTask();
     }
 
     public void setNewThreshold(View view){
@@ -66,12 +74,17 @@ public class ThresholdActivity extends AppCompatActivity {
         newThreshold = (EditText)findViewById(R.id.newThreshold);
         BTApp.write(newThreshold.getText().toString());
 
-        BTApp.getThreshold();
+        getThreshold();
 
         Toast.makeText(this,"Threshold updated!",Toast.LENGTH_LONG).show();
 
 
 
+    }
+
+    private void updateThreshold(String threshold) {
+        thresholdValue.setText(threshold);
+        destroyTask();
     }
 
     private class ReadFromBtTask1 extends AsyncTask<Void, String, Void> {
@@ -84,11 +97,12 @@ public class ThresholdActivity extends AppCompatActivity {
 
         protected Void doInBackground(Void... params) {
             Log.e("AsynTask","Running");
-            while (running&&!isCancelled()) {
+            while (running && !isCancelled()) {
                 String idString = BTApp.read();
 
                 if (idString != null) {
                     publishProgress(idString);
+                    break;
                 }
             }
             return null;
@@ -98,13 +112,10 @@ public class ThresholdActivity extends AppCompatActivity {
             String thresholdValueString = progress[0];
             Log.e("checkThreshold",thresholdValueString);
 
-            thresholdValue.setText(thresholdValueString);
-
-
-
-            }
+            updateThreshold(thresholdValueString);
         }
     }
+}
 
 
 
