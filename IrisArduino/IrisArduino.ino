@@ -14,6 +14,24 @@
 
 #define SPIN_LIMIT 30
 
+// function declaration
+
+void clearSerialBuffer();
+void clearBuffer();
+void update(String str);
+void updateTagTimeArray(Tag *tag);
+void updateTagTimeArray();
+bool withinTimeLimit();
+void unlockDoor();
+void lockDoor();
+uint8_t getUpdatedThreshold();
+bool meetRequirement();
+void process(uint16_t id);
+bool bufferIsInt();
+long mins();
+long getCurrentTime();
+void printCurrentTime();
+
 enum State {READ, ADD, ENABLE, DISABLE, REPORT_STOLEN, REPORT_FOUND, SET_THRESHOLD};
 
 const String STATE_STRING[] = {String("ADDTAG"),
@@ -26,6 +44,8 @@ const String STATE_STRING[] = {String("ADDTAG"),
                                String("GETTHRESHOLD")};
 
 unsigned long stateTimeStamp = 0;
+
+long timeDifference = 0;
 
 char serialBuffer[64];
 uint8_t bufferIndex = 0;
@@ -70,9 +90,9 @@ void update(String str) {
 
     if (readerState == SET_THRESHOLD) {
         tagDB.setThreshold(val);
-        Serial.print("Updated threshold. Now requires ");
-        Serial.print(val);
-        Serial.println(" tags to unlock system.");
+        Serial.print("Updated threshold. Requires ");
+        Serial.print(getUpdatedThreshold());
+        Serial.println(" tags to unlock system. (after learning behaviour)");
         return;
     }
 
@@ -167,25 +187,6 @@ void updateTagTimeArray() {
     }
 }
 
-void setup() {
-    Serial.begin(9600); // communication between PC
-    Serial1.begin(9600); // communication between android
-
-    wg.begin(); // start wiegand listener
-    tagDB.load(); // load data from Flash/EEPROM
-
-    servo1.attach(servopin);
-
-    // Set the reader state
-    readerState = READ;
-    
-    clearSerialBuffer();
-
-    pinMode(led, OUTPUT);
-    pinMode(lock, INPUT);
-    servo1.write(0);
-}
-
 bool withinTimeLimit() {
     unsigned long currentTime = millis(); // get the current time in ms
     bool inTime = false;
@@ -251,10 +252,7 @@ void process(uint16_t id) {
             if (tag.isEnabled() && !tag.isStolen()) {
                 updateTagTimeArray(&tag);
                 if (meetRequirement()) { // enough tags detected to unlock door
-                    unsigned long timestamp = millis();
-                    timestamp = timestamp % 86400000; // get only the time within a day
-                    timestamp /= 60000; // in minutes
-                    cluster.add((uint16_t) timestamp);
+                    cluster.add((uint16_t) getCurrentTime());
                     cluster.print();
                     Serial.println("OPEN SESAME!!!!");
                     digitalWrite(led, HIGH);
@@ -263,6 +261,12 @@ void process(uint16_t id) {
                 else // not enough tags detected to unlock door
                     Serial.println("Need more tags!!!");
             }
+        }
+        else if (readerState == ADD) {
+            Serial.println();
+            Serial.print("Tag id ");
+            Serial.print(id);
+            Serial.println(" already exists in database.");
         }
     }
     else { // tag id does not exist in database
@@ -279,6 +283,57 @@ void process(uint16_t id) {
     }
 }
 
+bool bufferIsInt() {
+    for (int i = 0; i != bufIndex; ++i) {
+        if ((buffer[i] < 48) || (buffer[i] > 57)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// return time in minutes
+long mins() {
+    return (long) ((millis() % 86400000) / 60000);
+}
+
+long getCurrentTime() {
+    return mins() + timeDifference;
+}
+
+void printCurrentTime() {
+    long minutes = getCurrentTime();
+    long hours = minutes / 60;
+    minutes %= 60;
+    Serial.print("Time now is: ");
+    if (hours < 10)
+        Serial.print("0");
+    Serial.print(hours);
+    Serial.print(":");
+    if (minutes < 10)
+        Serial.print("0");
+    Serial.println(minutes);
+}
+
+void setup() {
+    Serial.begin(9600); // communication between PC
+    Serial1.begin(9600); // communication between android
+
+    wg.begin(); // start wiegand listener
+    tagDB.load(); // load data from Flash/EEPROM
+
+    servo1.attach(servopin);
+
+    // Set the reader state
+    readerState = READ;
+    
+    clearSerialBuffer();
+
+    pinMode(led, OUTPUT);
+    pinMode(lock, INPUT);
+    servo1.write(0);
+}
+
 void loop() {
     if (Serial.available()) {
         char c = Serial.read();
@@ -286,8 +341,21 @@ void loop() {
             buffer[bufIndex++] = c;
         else {
             // TODO: allow time to be set in Serial monitor
-            uint16_t id = String(buffer).toInt();
-            process(id);
+            if (bufferIsInt()) { // got an ID
+                uint16_t id = String(buffer).toInt();
+                process(id);
+            }
+            else { // probably got a time
+                String readString(buffer);
+                if (readString.charAt(0) == 'T') {// indeed it is a time
+                    // time format: TXX:XX. Example: T08:45 is 8:45am
+                    long hour = readString.substring(1,3).toInt();
+                    long minute = readString.substring(4,6).toInt();
+                    timeDifference = (hour * 60 + minute) - mins();
+                    printCurrentTime();
+                }
+
+            }
             clearBuffer();
         }
     }
@@ -346,7 +414,7 @@ void loop() {
                         break;
                     case 7: // user wants to get the tag threshold
                         Serial1.print(String(getUpdatedThreshold()) + "!");
-                        Serial.println("Sent tag threshold mode.");
+                        Serial.println("App requesting for tag threshold.");
                         readerState = READ;
                         break;
                     default:
